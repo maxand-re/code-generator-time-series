@@ -1,29 +1,30 @@
 #include <iostream>
 
-std::string signature_sequence(const int input[], size_t size) {
-    std::string signature(size - 1, '\0');
+#include "transducers/PlateauTransducer.h"
 
-    for (size_t i = 1; i < size; i++) {
-        const int before = input[i - 1];
-        const int now = input[i];
-
-        if (before == now) {
-            signature[i - 1] = '=';
-        } else if (before < now) {
-            signature[i - 1] = '>';
-        } else {
-            signature[i - 1] = '<';
-        }
+std::string semanticLetterToString(const SeedTransducer::SemanticLetter letter) {
+    switch (letter) {
+        case SeedTransducer::SemanticLetter::OUT: return "out";
+        case SeedTransducer::SemanticLetter::OUT_R: return "out_r";
+        case SeedTransducer::SemanticLetter::OUT_A: return "out_a";
+        case SeedTransducer::SemanticLetter::MAYBE_A: return "maybe_a";
+        case SeedTransducer::SemanticLetter::MAYBE_B: return "maybe_b";
+        case SeedTransducer::SemanticLetter::FOUND: return "found";
+        case SeedTransducer::SemanticLetter::FOUND_E: return "found_e";
+        default: return "unknown";
     }
-
-    return signature;
 }
 
 int main() {
-    const int input[] = {1, 2, 1, 2, 1, 1, 2, 1, 2, 3};
-    size_t size = std::size(input);
+    const std::vector input{1, 1, 2, 2, 3, 3, 2, 1};
 
-    std::cout << "Sequence: " << signature_sequence(input, size) << std::endl;
+    PlateauTransducer plateau;
+
+    const auto result = plateau.process(input);
+
+    for (const auto r : result) {
+        std::cout << semanticLetterToString(r) << std::endl;
+    }
 
     return 0;
 }
