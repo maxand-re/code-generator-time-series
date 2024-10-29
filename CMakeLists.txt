@@ -7,9 +7,13 @@ find_package(nlohmann_json 3.2.0 REQUIRED)
 
 add_executable(generate_code
         src/main.cpp
-        src/transducers/Transducer.cpp
+        src/Semantic.h
         src/transducers/Transducer.cpp
         src/transducers/Transducer.h
+        src/decoration/Decoration.cpp
+        src/decoration/Decoration.h
+        src/generator/Generator.cpp
+        src/generator/Generator.h
 )
 
 # RESOURCES

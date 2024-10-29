@@ -1,12 +1,10 @@
 #include "Transducer.h"
 
 #include <fstream>
-#include <iostream>
 #include <stdexcept>
 #include <nlohmann/json.hpp>
 
 using namespace std;
-
 
 string Transducer::compare(const int a, const int b) {
     if (a < b) return "<";
@@ -36,7 +34,7 @@ vector<Semantic::Letter> Transducer::process(vector<int> series, string pattern)
 
                 state = conditionIter.value().at("next").get<string>();
                 auto stringSemanticLetter = conditionIter.value().at("semantic").get<string>();
-                result.push_back(Semantic::stringToLetter(stringSemanticLetter));
+                result.push_back(Semantic::string_to_letter(stringSemanticLetter));
                 break;
             }
         }
