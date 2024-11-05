@@ -21,6 +21,22 @@ enum Feature {
     Range
 };
 
+inline Feature to_feature(const std::string &feature) {
+    if (feature == "one") return One;
+    if (feature == "width") return Width;
+    if (feature == "surface") return Surface;
+    if (feature == "max") return FMax;
+    if (feature == "min") return FMin;
+    if (feature == "range") return Range;
+    throw std::invalid_argument("Invalid feature value. Must be one of:\n - one\n - width\n - surface\n - max\n - min\n - range");
+}
+
+inline Aggregator to_aggregator(const std::string &aggregator) {
+    if (aggregator == "max") return Max;
+    if (aggregator == "min") return Min;
+    if (aggregator == "sum") return Sum;
+    throw std::invalid_argument("Invalid aggregator value. Must be one of:\n - max\n - min\n - sum");
+}
 
 inline std::string to_string(const Feature feature) {
     switch (feature) {
