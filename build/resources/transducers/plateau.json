@@ -1,0 +1,57 @@
+{
+  "after": 0,
+  "entry": "start",
+  "states": {
+    "start": [
+      {
+        "condition": "<",
+        "next": "rising",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out"
+      },
+      {
+        "condition": ">",
+        "next": "start",
+        "semantic": "out"
+      }
+    ],
+    "rising": [
+      {
+        "condition": "<",
+        "next": "rising",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "plateau",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": ">",
+        "next": "start",
+        "semantic": "found_e"
+      }
+    ],
+    "plateau": [
+      {
+        "condition": "<",
+        "next": "rising",
+        "semantic": "out_r"
+      },
+      {
+        "condition": "=",
+        "next": "plateau",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": ">",
+        "next": "start",
+        "semantic": "found_e"
+      }
+    ]
+  }
+}

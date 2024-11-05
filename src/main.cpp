@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdexcept>
-#include "generator/Generator.h"
-#include "transducers/Transducer.h"
+#include "lib/generator/Generator.h"
 
 void print_help() {
     std::cout <<

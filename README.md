@@ -16,8 +16,8 @@ The parameters are:
 - aggregator: the aggregator to use, e.g., max, min, etc.
 
 # Transducers and Constraints
-![transducer](/image/transducer.png)
-![constraint](/image/constraint.png)
+![transducer](/.github/images/transducer.png)
+![constraint](/.github/images/constraint.png)
 
 # References
 - Beldiceanu, N., et al. Using Finite Transducers for Describing and Synthesising Structural Time-Series Constraints, Constraints Journal, 2015.

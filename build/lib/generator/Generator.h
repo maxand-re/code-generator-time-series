@@ -28,7 +28,8 @@ inline Feature to_feature(const std::string &feature) {
     if (feature == "max") return FMax;
     if (feature == "min") return FMin;
     if (feature == "range") return Range;
-    throw std::invalid_argument("Invalid feature value. Must be one of:\n - one\n - width\n - surface\n - max\n - min\n - range");
+    throw std::invalid_argument(
+        "Invalid feature value. Must be one of:\n - one\n - width\n - surface\n - max\n - min\n - range");
 }
 
 inline Aggregator to_aggregator(const std::string &aggregator) {
@@ -68,35 +69,45 @@ struct FeatureValues {
 };
 
 class Generator {
-    int get_default_gf() const;
+    [[nodiscard]] double get_default_gf() const;
 
-    static std::string generate_function_code(const std::string &function_name, double default_gf, double neutral_f);
+    static string convert_to_code(double value);
 
-    std::map<Feature, FeatureValues> features = {
-        {One, {1, 1, 1, "max", 0}},
-        {Width, {0, 0, std::numeric_limits<double>::infinity(), "+", 1}},
+    static std::string generate_function_code(const std::string &aggregator_name, const std::string &feature_name,
+                                              const std::string &pattern, const std::string &operatorString, double default_gf, double
+                                              neutral_f);
+
+    const std::map<Feature, FeatureValues> features = {
+        {
+            One, {1, 1, 1, "max", 0}
+        },
+        {
+            Width, {0, 0, std::numeric_limits<double>::infinity(), "+", 1}
+        },
         {
             Surface,
             {
                 0, -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), "+",
-                std::numeric_limits<double>::quiet_NaN()
+                -1
             }
         },
         {
             FMax,
             {
                 -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),
-                std::numeric_limits<double>::infinity(), "max", std::numeric_limits<double>::quiet_NaN()
+                std::numeric_limits<double>::infinity(), "max", -1
             }
         },
         {
             FMin,
             {
                 std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(),
-                std::numeric_limits<double>::infinity(), "min", std::numeric_limits<double>::quiet_NaN()
+                std::numeric_limits<double>::infinity(), "min", -1
             }
         },
-        {Range, {0, 0, std::numeric_limits<double>::infinity(), "", std::numeric_limits<double>::quiet_NaN()}}
+        {
+            Range, {0, 0, std::numeric_limits<double>::infinity(), "", -1}
+        }
     };
 
     Feature feature;
@@ -104,7 +115,7 @@ class Generator {
     string pattern;
 
 public:
-    Generator(Feature feature, Aggregator aggregator, const std::string &pattern);
+    Generator(Feature feature, Aggregator aggregator, std::string pattern);
 
     void generate() const;
 };
