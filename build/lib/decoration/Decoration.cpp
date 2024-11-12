@@ -11,6 +11,14 @@ map<string, function<bool(int, int)> > operators = {
     {"max", [](int x, int y) { return x > y; }}
 };
 
+map<string, function<int(int, int)> > aggregators = {
+    {"min", [](int x, int y) { return min(x, y); }},
+    {"max", [](int x, int y) { return max(x, y); }},
+    {"sum", [](int x, int y) { return x + y; }},
+};
+
+
+
 nlohmann::json Decoration::get_json(const string &pattern) {
     nlohmann::json patternJson;
 
@@ -42,18 +50,18 @@ int calculate_operator(const string &operator_string, int valueA, int valueB) {
     return 0;
 }
 
-void Decoration::apply_decorator(
+Decoration::Result Decoration::apply_decorator(
     const vector<int> &series,
-    double default_gf,
-    double neutral_f,
-    const int delta_f,
+    int default_gf,
+    int neutral_f,
+    int delta_f,
     const string &operator_string,
     const string &aggregator_string,
     const string &pattern
 ) {
-    int C = static_cast<int>(default_gf);
-    int D = static_cast<int>(neutral_f);
-    int R = static_cast<int>(default_gf);
+    int C = default_gf;
+    int D = neutral_f;
+    int R = default_gf;
 
     const auto json = get_json(pattern);
 
@@ -69,7 +77,7 @@ void Decoration::apply_decorator(
         const int current_delta_f = delta_f == -1 ? series[i] : delta_f;
         const int current_delta_f_1 = delta_f == -1 ? series[i + 1] : delta_f;
 
-        switch (auto letter = semantics[i]) {
+        switch (semantics[i]) {
             case Semantic::OUT: //
                 f[i] = new int(0);
                 ct[i] = ct[i + 1];
@@ -102,17 +110,55 @@ void Decoration::apply_decorator(
                                                                            calculate_operator(
                                                                                operator_string, D, current_delta_f),
                                                                            current_delta_f_1), R)) {
+                        f[i] = ct[i];
+                        at[i] = new int(0);
+                        ct[i] = at[i + 1];
                     } else if (calculate_operator(operator_string,
                                                   calculate_operator(operator_string, D, current_delta_f),
                                                   current_delta_f_1) == R) {
+                        f[i] = at[i + 1];
+                        ct[i] = at[i + 1];
+                        at[i] = at[i + 1];
                     } else if (operators.at(aggregator_string)(R, calculate_operator(operator_string,
                                                                    calculate_operator(
                                                                        operator_string, D, current_delta_f),
                                                                    current_delta_f_1))) {
+                        f[i] = new int(0);
+                        ct[i] = new int(0);
+                        at[i] = at[i + 1];
                     } else {
                         continue;
                     }
-                } else {
+
+                    R = aggregators.at(aggregator_string)(R,
+                                                          calculate_operator(operator_string,
+                                                                             calculate_operator(operator_string,
+                                                                                 D, current_delta_f),
+                                                                             current_delta_f_1)
+                    );
+
+                    D = neutral_f;
+                } else if (after == 1) {
+                    if (operators.at(aggregator_string)(calculate_operator(operator_string, D, current_delta_f), R)) {
+                        f[i] = ct[i];
+                        at[i] = new int(0);
+                        at[i + 1] = ct[i];
+                    } else if (calculate_operator(operator_string, D, current_delta_f) == R) {
+                        f[i] = at[i + 1];
+                        ct[i] = at[i + 1];
+                        at[i] = at[i + 1];
+                    } else if (operators.at(aggregator_string)(
+                        R, calculate_operator(operator_string, D, current_delta_f))) {
+                        f[i] = ct[i];
+                        at[i] = new int(0);
+                        at[i + 1] = ct[i];
+                    } else {
+                        continue;
+                    }
+
+                    R = aggregators.at(aggregator_string)(R, calculate_operator(operator_string, D, current_delta_f));
+
+                    D = neutral_f;
                 }
 
                 break;
@@ -121,4 +167,26 @@ void Decoration::apply_decorator(
             default: throw std::invalid_argument("Invalid Semantic::Letter value");
         }
     }
+
+    const unsigned long n = semantics.size() - 1;
+
+    if (operators.at(aggregator_string)(C, R)) {
+        ct[n] = new int(1);
+        at[n] = new int(1);
+    } else if (C == R) {
+        if (R == default_gf) {
+            ct[n] = new int(0);
+            at[n] = new int(0);
+        } else {
+            ct[n] = new int(1);
+            at[n] = new int(1);
+        }
+    } else {
+        ct[n] = new int(0);
+        at[n] = new int(1);
+    }
+
+    return {
+        at, ct, f, R, C, D
+    };
 }

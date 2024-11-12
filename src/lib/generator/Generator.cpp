@@ -34,7 +34,7 @@ std::string Generator::generate_function_code(
     const std::string &aggregator_name,
     const std::string &feature_name,
     const std::string &pattern,
-    const std::string &operatorString,
+    const std::string &operator_string,
     double default_gf,
     double neutral_f
 ) {
@@ -47,9 +47,12 @@ std::string Generator::generate_function_code(
             << "inline void " << function_name << "(std::vector<int> series) {\n"
             << "    double default_gf = " << convert_to_code(default_gf) << ";\n"
             << "    double neutral_f = " << convert_to_code(neutral_f) << ";\n"
-            << "    string operator = \"" << operatorString << "\";\n"
+            << "    double delta_f = " << this->features.at(feature).delta << ";\n\n"
+            << "    string operator_string = \"" << operator_string << "\";\n"
+            << "    string aggregator_name = \"" << aggregator_name << "\";\n"
+            << "    string pattern = \"" << pattern << "\";\n"
             << "\n"
-            << "    Decoration::apply_decorator(series, default_gf, neutral_f, operator, \"" << pattern << "\");\n"
+            << "    Decoration::apply_decorator(series, default_gf, neutral_f, delta_f, operator_string, aggregator_name, pattern);\n"
             << "}\n";
 
     file << ss.str();
@@ -58,7 +61,7 @@ std::string Generator::generate_function_code(
     return ss.str();
 }
 
-void Generator::generate() const {
+void Generator::generate() {
     double default_gf = 0;
     switch (aggregator) {
         case Max:
