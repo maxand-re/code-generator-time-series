@@ -18,7 +18,6 @@ map<string, function<int(int, int)> > aggregators = {
 };
 
 
-
 nlohmann::json Decoration::get_json(const string &pattern) {
     nlohmann::json patternJson;
 
@@ -92,6 +91,24 @@ Decoration::Result Decoration::apply_decorator(
                 D = neutral_f;
                 break;
             case Semantic::OUT_A:
+                if (operators.at(aggregator_string)(C, R)) {
+                    f[i] = new int(0);
+                    at[i] = new int(0);
+                    ct[i] = at[i + 1];
+                } else if (C == R) {
+                    f[i] = new int(0);
+                    ct[i] = at[i + 1];
+                    at[i] = at[i + 1];
+                } else if (operators.at(aggregator_string)(R, C)) {
+                    f[i] = new int(0);
+                    ct[i] = new int(0);
+                    at[i] = at[i + 1];
+                } else {
+                }
+
+                C = default_gf;
+                D = neutral_f;
+                R = aggregators.at(aggregator_string)(R, C);
                 break;
             case Semantic::MAYBE_B: //
                 f[i] = new int(0);
@@ -101,8 +118,28 @@ Decoration::Result Decoration::apply_decorator(
                 D = calculate_operator(operator_string, D, current_delta_f);
                 break;
             case Semantic::MAYBE_A:
+                f[i] = new int(0);
+                ct[i] = ct[i + 1];
+                at[i] = at[i + 1];
+                if (after == 0) {
+                    D = calculate_operator(operator_string, D, current_delta_f_1);
+                } else {
+                    D = calculate_operator(operator_string, D, current_delta_f);
+                }
                 break;
             case Semantic::FOUND:
+                ct[i] = new int(0);
+                f[i] = ct[i + 1];
+                at[i] = at[i + 1];
+
+                if (after == 0) {
+                    R = calculate_operator(operator_string, calculate_operator(operator_string, D, current_delta_f),
+                                           current_delta_f_1);
+                } else {
+                    R = calculate_operator(operator_string, D, current_delta_f);
+                }
+
+                D = neutral_f;
                 break;
             case Semantic::FOUND_E: //
                 if (after == 0) {
@@ -163,6 +200,18 @@ Decoration::Result Decoration::apply_decorator(
 
                 break;
             case Semantic::IN:
+                f[i] = new int(0);
+                ct[i] = ct[i + 1];
+                at[i] = at[i + 1];
+
+                if (after == 0) {
+                    C = calculate_operator(operator_string, C,
+                                           calculate_operator(operator_string, D, current_delta_f_1));
+                } else {
+                    C = calculate_operator(operator_string, C,
+                                           calculate_operator(operator_string, D, current_delta_f));
+                }
+                D = neutral_f;
                 break;
             default: throw std::invalid_argument("Invalid Semantic::Letter value");
         }
@@ -187,11 +236,11 @@ Decoration::Result Decoration::apply_decorator(
     }
 
     return {
-        .at=at,
-        .ct=ct,
-        .f=f,
-        .R=R,
-        .C=C,
-        .D=D
+        .at = at,
+        .ct = ct,
+        .f = f,
+        .R = R,
+        .C = C,
+        .D = D
     };
 }
