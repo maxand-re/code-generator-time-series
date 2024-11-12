@@ -142,16 +142,16 @@ Decoration::Result Decoration::apply_decorator(
                     if (operators.at(aggregator_string)(calculate_operator(operator_string, D, current_delta_f), R)) {
                         f[i] = ct[i];
                         at[i] = new int(0);
-                        at[i + 1] = ct[i];
+                        ct[i] = at[i + 1];
                     } else if (calculate_operator(operator_string, D, current_delta_f) == R) {
                         f[i] = at[i + 1];
                         ct[i] = at[i + 1];
                         at[i] = at[i + 1];
                     } else if (operators.at(aggregator_string)(
                         R, calculate_operator(operator_string, D, current_delta_f))) {
-                        f[i] = ct[i];
-                        at[i] = new int(0);
-                        at[i + 1] = ct[i];
+                        f[i] = new int(0);
+                        ct[i] = new int(0);
+                        at[i] = at[i + 1];
                     } else {
                         continue;
                     }
@@ -187,6 +187,11 @@ Decoration::Result Decoration::apply_decorator(
     }
 
     return {
-        at, ct, f, R, C, D
+        .at=at,
+        .ct=ct,
+        .f=f,
+        .R=R,
+        .C=C,
+        .D=D
     };
 }
