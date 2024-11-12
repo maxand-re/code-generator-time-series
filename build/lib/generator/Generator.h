@@ -71,7 +71,7 @@ struct FeatureValues {
 class Generator {
     [[nodiscard]] double get_default_gf() const;
 
-    static string convert_to_code(double value);
+    static string convert_to_code(int value);
 
     std::string generate_function_code(const std::string &aggregator_name, const std::string &feature_name,
                                               const std::string &pattern, const std::string &operator_string, double default_gf, double
@@ -82,31 +82,31 @@ class Generator {
             One, {1, 1, 1, "max", 0}
         },
         {
-            Width, {0, 0, std::numeric_limits<double>::infinity(), "+", 1}
+            Width, {0, 0, -1, "+", 1}
         },
         {
             Surface,
             {
-                0, -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), "+",
+                0, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), "+",
                 -1
             }
         },
         {
             FMax,
             {
-                -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),
-                std::numeric_limits<double>::infinity(), "max", -1
+                std::numeric_limits<int>::min(), std::numeric_limits<int>::min(),
+                std::numeric_limits<int>::max(), "max", -1
             }
         },
         {
             FMin,
             {
-                std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(),
-                std::numeric_limits<double>::infinity(), "min", -1
+                std::numeric_limits<int>::max(), std::numeric_limits<int>::max(),
+                std::numeric_limits<int>::max(), "min", -1
             }
         },
         {
-            Range, {0, 0, std::numeric_limits<double>::infinity(), "", -1}
+            Range, {0, 0, std::numeric_limits<int>::max(), "", -1}
         }
     };
 

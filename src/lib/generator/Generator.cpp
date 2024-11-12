@@ -18,13 +18,13 @@ double Generator::get_default_gf() const {
     }
 }
 
-string Generator::convert_to_code(const double value) {
-    if (value == std::numeric_limits<double>::infinity()) {
-        return "std::numeric_limits<double>::infinity()";
+string Generator::convert_to_code(const int value) {
+    if (value == std::numeric_limits<int>::max()) {
+        return "std::numeric_limits<int>::max()";
     }
 
-    if (value == -std::numeric_limits<double>::infinity()) {
-        return "-std::numeric_limits<double>::infinity()";
+    if (value == std::numeric_limits<int>::min()) {
+        return "std::numeric_limits<int>::min()";
     }
 
     return std::to_string(value);
@@ -45,9 +45,9 @@ std::string Generator::generate_function_code(
     ss << "#include <vector>\n\n"
             << "#include \"../lib/decoration/Decoration.h\"\n\n"
             << "inline void " << function_name << "(std::vector<int> series) {\n"
-            << "    double default_gf = " << convert_to_code(default_gf) << ";\n"
-            << "    double neutral_f = " << convert_to_code(neutral_f) << ";\n"
-            << "    double delta_f = " << this->features.at(feature).delta << ";\n\n"
+            << "    int default_gf = " << convert_to_code(default_gf) << ";\n"
+            << "    int neutral_f = " << convert_to_code(neutral_f) << ";\n"
+            << "    int delta_f = " << this->features.at(feature).delta << ";\n\n"
             << "    string operator_string = \"" << operator_string << "\";\n"
             << "    string aggregator_name = \"" << aggregator_name << "\";\n"
             << "    string pattern = \"" << pattern << "\";\n"

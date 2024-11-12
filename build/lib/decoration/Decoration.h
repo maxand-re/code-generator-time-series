@@ -15,6 +15,7 @@ public:
         int R;
         int C;
         int D;
+        int result;
     };
 
     static nlohmann::json get_json(const string &pattern);

@@ -58,6 +58,8 @@ Decoration::Result Decoration::apply_decorator(
     const string &aggregator_string,
     const string &pattern
 ) {
+    if (default_gf == -1)
+        default_gf = static_cast<int>(series.size());
     int C = default_gf;
     int D = neutral_f;
     int R = default_gf;
@@ -219,9 +221,10 @@ Decoration::Result Decoration::apply_decorator(
 
     const unsigned long n = semantics.size() - 1;
 
+    f[n] = new int(0);
     if (operators.at(aggregator_string)(C, R)) {
         ct[n] = new int(1);
-        at[n] = new int(1);
+        at[n] = new int(0);
     } else if (C == R) {
         if (R == default_gf) {
             ct[n] = new int(0);
@@ -241,6 +244,7 @@ Decoration::Result Decoration::apply_decorator(
         .f = f,
         .R = R,
         .C = C,
-        .D = D
+        .D = D,
+        .result = aggregators.at(aggregator_string)(R, C)
     };
 }
