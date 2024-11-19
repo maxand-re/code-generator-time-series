@@ -5,7 +5,7 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 
-Generator::Generator(Feature feature, Aggregator aggregator, std::string pattern)
+Generator::Generator(const Feature feature, const Aggregator aggregator, std::string pattern)
     : feature(feature), aggregator(aggregator), pattern(std::move(pattern)) {
 }
 
@@ -69,8 +69,10 @@ void Generator::generate() {
             break;
         case Min:
             default_gf = this->features.at(this->feature).max_f;
+            break;
         case Sum:
             default_gf = 0;
+            break;
         default:
             throw runtime_error("The selected aggregator doesn't exist");
     }

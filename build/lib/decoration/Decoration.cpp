@@ -65,6 +65,7 @@ Decoration::Result Decoration::apply_decorator(
     int R = default_gf;
 
     const auto json = get_json(pattern);
+
     auto semantics = Transducer::process(series, json);
 
     const int after = json.at("after").get<int>();
@@ -78,6 +79,13 @@ Decoration::Result Decoration::apply_decorator(
         ct[i] = Node(0);
         f[i] = Node(0);
     }
+
+    cout << "semantics: ";
+    for (auto i = 0; i < semantics.size(); ++i) {
+        cout << letter_to_string(semantics[i]) << ",";
+    }
+    cout << endl;
+
 
     for (auto i = 0; i < semantics.size(); ++i) {
         const int current_delta_f = delta_f == -1 ? series[i] : delta_f;
@@ -140,10 +148,10 @@ Decoration::Result Decoration::apply_decorator(
                 at[i].ptr = &at[i + 1];
 
                 if (after == 0) {
-                    R = calculate_operator(operator_string, calculate_operator(operator_string, D, current_delta_f),
+                    C = calculate_operator(operator_string, calculate_operator(operator_string, D, current_delta_f),
                                            current_delta_f_1);
                 } else {
-                    R = calculate_operator(operator_string, D, current_delta_f);
+                    C = calculate_operator(operator_string, D, current_delta_f);
                 }
 
                 D = neutral_f;
@@ -224,7 +232,7 @@ Decoration::Result Decoration::apply_decorator(
         }
     }
 
-    const unsigned long n = semantics.size() - 1;
+    const unsigned long n = series.size() - 1;
 
     if (operators.at(aggregator_string)(C, R)) {
         ct[n].setValue(1);
@@ -241,9 +249,26 @@ Decoration::Result Decoration::apply_decorator(
         ct[n].setValue(0);
         at[n].setValue(1);
     }
-    for (int i = 0; i < series.size(); i++) {
-        cout << f[i].getValue() << ",\n";
+
+    cout << "at = [";
+    for (auto at_i : at) {
+        cout << at_i.getValue() << ", ";
     }
+    cout << "]" << endl;
+
+    cout << "ct = [";
+    for (auto ct_i : ct) {
+        cout << ct_i.getValue() << ", ";
+    }
+    cout << "]" << endl;
+
+    cout << "f = [";
+    for (auto f_i : f) {
+        cout << f_i.getValue() << ", ";
+    }
+    cout << "]" << endl;
+
+    cout << "result = " << aggregators.at(aggregator_string)(R, C) << endl;
 
     return {
         .at = at,

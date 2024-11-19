@@ -17,14 +17,11 @@ public:
 
     int getValue() {
         if (ptr != nullptr) {
-            std::cout << "PTR > ";
             return ptr->getValue();
         }
         if (value.has_value()) {
-            std::cout << "VALUE";
             return value.value();
         }
-        std::cout << "ERROR";
         return -1;
     }
 

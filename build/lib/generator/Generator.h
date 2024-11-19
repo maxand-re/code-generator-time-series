@@ -1,5 +1,6 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
+#include <iostream>
 #include <map>
 #include <string>
 #include <stdexcept>
@@ -79,17 +80,16 @@ class Generator {
 
     const std::map<Feature, FeatureValues> features = {
         {
-            One, {1, 1, 1, "max", 0}
+            One,
+            {1, 1, 1, "max", 0}
         },
         {
-            Width, {0, 0, -1, "+", 1}
+            Width,
+            {0, 0, -1, "+", 1}
         },
         {
             Surface,
-            {
-                0, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), "+",
-                -1
-            }
+            {0, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), "+",-1}
         },
         {
             FMax,
@@ -100,10 +100,7 @@ class Generator {
         },
         {
             FMin,
-            {
-                std::numeric_limits<int>::max(), std::numeric_limits<int>::max(),
-                std::numeric_limits<int>::max(), "min", -1
-            }
+            {std::numeric_limits<int>::max(), std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), "min", -1}
         },
         {
             Range, {0, 0, std::numeric_limits<int>::max(), "", -1}

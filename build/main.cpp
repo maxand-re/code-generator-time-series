@@ -1,8 +1,7 @@
-#include "generated/generated_max_width_plateau.hpp"
-
+#include "generated/generated_min_min_zigzag.hpp"
 
 int main() {
-    max_width_plateau({1, 2, 2, 2, 2, 2, 2, 1, 1, 3, 3, 3, 1, 1});
+    min_min_zigzag({4, 1, 3, 1, 4, 6, 1, 5, 5, 2, 7, 2, 3, 1, 6, 1});
 
     return 0;
 }
