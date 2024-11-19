@@ -121,9 +121,9 @@ Decoration::Result Decoration::apply_decorator(
                 } else {
                 }
 
+                R = aggregators.at(aggregator_string)(R, C);
                 C = default_gf;
                 D = neutral_f;
-                R = aggregators.at(aggregator_string)(R, C);
                 break;
             case Semantic::MAYBE_B: //
                 f[i].setValue(0);
