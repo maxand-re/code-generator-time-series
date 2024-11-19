@@ -70,9 +70,9 @@ Decoration::Result Decoration::apply_decorator(
 
     const int after = json.at("after").get<int>();
 
-    vector<int *> at(series.size(), new int(0));
-    vector<int *> ct(series.size(), new int(0));
-    vector<int *> f(series.size(), new int(0));
+    vector<Node> at(series.size());
+    vector<Node> ct(series.size());
+    vector<Node> f(series.size());
 
     for (auto i = 0; i < semantics.size(); ++i) {
         const int current_delta_f = delta_f == -1 ? series[i] : delta_f;
@@ -80,15 +80,15 @@ Decoration::Result Decoration::apply_decorator(
 
         switch (semantics[i]) {
             case Semantic::OUT: //
-                f[i] = new int(0);
-                ct[i] = ct[i + 1];
-                at[i] = at[i + 1];
+                f[i] = 0;
+                ct[i] = &ct[i + 1];
+                at[i] = &at[i + 1];
 
                 break;
             case Semantic::OUT_R: //
-                f[i] = new int(0);
-                ct[i] = ct[i + 1];
-                at[i] = at[i + 1];
+                f[i] = 0;
+                ct[i] = &ct[i + 1];
+                at[i] = &at[i + 1];
 
                 D = neutral_f;
                 break;
@@ -113,9 +113,9 @@ Decoration::Result Decoration::apply_decorator(
                 R = aggregators.at(aggregator_string)(R, C);
                 break;
             case Semantic::MAYBE_B: //
-                f[i] = new int(0);
-                ct[i] = ct[i + 1];
-                at[i] = at[i + 1];
+                f[i] = 0;
+                ct[i] = &ct[i + 1];
+                at[i] = &at[i + 1];
 
                 D = calculate_operator(operator_string, D, current_delta_f);
                 break;
@@ -149,22 +149,22 @@ Decoration::Result Decoration::apply_decorator(
                                                                            calculate_operator(
                                                                                operator_string, D, current_delta_f),
                                                                            current_delta_f_1), R)) {
-                        f[i] = ct[i];
-                        at[i] = new int(0);
-                        ct[i] = at[i + 1];
+                        f[i] = &ct[i];
+                        at[i] = 0;
+                        ct[i] = &at[i + 1];
                     } else if (calculate_operator(operator_string,
                                                   calculate_operator(operator_string, D, current_delta_f),
                                                   current_delta_f_1) == R) {
-                        f[i] = at[i + 1];
-                        ct[i] = at[i + 1];
-                        at[i] = at[i + 1];
+                        f[i] = &at[i + 1];
+                        ct[i] = &at[i + 1];
+                        at[i] = &at[i + 1];
                     } else if (operators.at(aggregator_string)(R, calculate_operator(operator_string,
                                                                    calculate_operator(
                                                                        operator_string, D, current_delta_f),
                                                                    current_delta_f_1))) {
-                        f[i] = new int(0);
-                        ct[i] = new int(0);
-                        at[i] = at[i + 1];
+                        f[i] = 0;
+                        ct[i] = 0;
+                        at[i] = &at[i + 1];
                     } else {
                         continue;
                     }
@@ -179,18 +179,18 @@ Decoration::Result Decoration::apply_decorator(
                     D = neutral_f;
                 } else if (after == 1) {
                     if (operators.at(aggregator_string)(calculate_operator(operator_string, D, current_delta_f), R)) {
-                        f[i] = ct[i];
-                        at[i] = new int(0);
-                        ct[i] = at[i + 1];
+                        f[i] = &ct[i];
+                        at[i] = 0;
+                        ct[i] = &at[i + 1];
                     } else if (calculate_operator(operator_string, D, current_delta_f) == R) {
-                        f[i] = at[i + 1];
-                        ct[i] = at[i + 1];
-                        at[i] = at[i + 1];
+                        f[i] = &at[i + 1];
+                        ct[i] = &at[i + 1];
+                        at[i] = &at[i + 1];
                     } else if (operators.at(aggregator_string)(
                         R, calculate_operator(operator_string, D, current_delta_f))) {
-                        f[i] = new int(0);
-                        ct[i] = new int(0);
-                        at[i] = at[i + 1];
+                        f[i] = 0;
+                        ct[i] = 0;
+                        at[i] = &at[i + 1];
                     } else {
                         continue;
                     }
@@ -223,19 +223,19 @@ Decoration::Result Decoration::apply_decorator(
 
     f[n] = new int(0);
     if (operators.at(aggregator_string)(C, R)) {
-        ct[n] = new int(1);
-        at[n] = new int(0);
+        ct[n] = 1;
+        at[n] = 0;
     } else if (C == R) {
         if (R == default_gf) {
-            ct[n] = new int(0);
-            at[n] = new int(0);
+            ct[n] = 0;
+            at[n] = 0;
         } else {
-            ct[n] = new int(1);
-            at[n] = new int(1);
+            ct[n] = 1;
+            at[n] = 1;
         }
     } else {
-        ct[n] = new int(0);
-        at[n] = new int(1);
+        ct[n] = 0;
+        at[n] = 1;
     }
 
     return {

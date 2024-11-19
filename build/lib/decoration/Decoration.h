@@ -1,17 +1,49 @@
 #ifndef DECORATION_H
 #define DECORATION_H
 
+#include <iostream>
 #include <vector>
 #include <nlohmann/json.hpp>
 
 using namespace std;
 
+class Node {
+public:
+    Node* ptr;
+    std::optional<int> value;
+
+    Node() : ptr(nullptr), value(std::nullopt) {}
+    explicit Node(int value) : ptr(nullptr), value(value) {}
+
+    int getValue() {
+        if (ptr != nullptr) {
+            std::cout << "PTR > ";
+            return ptr->getValue();
+        }
+        if (value.has_value()) {
+            std::cout << "VALUE";
+            return value.value();
+        }
+        std::cout << "ERROR";
+        return -1;
+    }
+
+    void setValue(int val) {
+        value = val;
+    }
+
+    Node& operator=(int value) {
+        setValue(value);
+        return *this;
+    }
+};
+
 class Decoration {
 public:
     struct Result {
-        vector<int*> at;
-        vector<int*> ct;
-        vector<int*> f;
+        vector<Node> at;
+        vector<Node> ct;
+        vector<Node> f;
         int R;
         int C;
         int D;

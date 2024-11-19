@@ -1,0 +1,57 @@
+{
+  "after": 1,
+  "entry": "start",
+  "states": {
+    "start": [
+      {
+        "condition": "<",
+        "next": "rising",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out"
+      },
+      {
+        "condition": ">",
+        "next": "start",
+        "semantic": "out"
+      }
+    ],
+    "rising": [
+      {
+        "condition": "<",
+        "next": "rising",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": "=",
+        "next": "rising",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": ">",
+        "next": "peak",
+        "semantic": "found"
+      }
+    ],
+    "peak": [
+      {
+        "condition": "<",
+        "next": "rising",
+        "semantic": "out_a"
+      },
+      {
+        "condition": "=",
+        "next": "peak",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": ">",
+        "next": "peak",
+        "semantic": "in"
+      }
+    ]
+  }
+}

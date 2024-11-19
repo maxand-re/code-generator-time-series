@@ -6,12 +6,45 @@
 
 using namespace std;
 
+
+class Node {
+public:
+    Node* ptr;
+    std::optional<int> value;
+
+    Node() : ptr(nullptr), value(std::nullopt) {}
+
+    int getValue() {
+        if (value.has_value()) {
+            return value.value();
+        }
+        if (ptr) {
+            return ptr->getValue();
+        }
+        throw std::runtime_error("No value defined in the node!");
+    }
+
+    void setValue(int val) {
+        value = val;
+    }
+
+    Node& operator=(int value) {
+        setValue(value);
+        return *this;
+    }
+
+    Node& operator=(Node* ptr) {
+        this->ptr = ptr;
+        return *this;
+    }
+};
+
 class Decoration {
 public:
     struct Result {
-        vector<int*> at;
-        vector<int*> ct;
-        vector<int*> f;
+        vector<Node> at;
+        vector<Node> ct;
+        vector<Node> f;
         int R;
         int C;
         int D;
