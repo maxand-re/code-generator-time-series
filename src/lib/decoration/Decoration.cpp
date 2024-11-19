@@ -270,13 +270,15 @@ Decoration::Result Decoration::apply_decorator(
 
     cout << "result = " << aggregators.at(aggregator_string)(R, C) << endl;
 
+    int result = aggregators.at(aggregator_string)(R, C);
+
     return {
-        .at = at,
-        .ct = ct,
-        .f = f,
-        .R = R,
-        .C = C,
-        .D = D,
-        .result = aggregators.at(aggregator_string)(R, C)
+        .at = &at,
+        .ct = &ct,
+        .f = &f,
+        .R = &R,
+        .C = &C,
+        .D = &D,
+        .result = &result
     };
 }

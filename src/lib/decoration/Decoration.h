@@ -14,6 +14,10 @@ public:
 
     Node() : ptr(nullptr), value(std::nullopt) {}
     explicit Node(int value) : ptr(nullptr), value(value) {}
+    Node(const Node& other) {
+        value = other.value;
+        ptr = other.ptr ? new Node(*other.ptr) : nullptr;
+    }
 
     int getValue() {
         if (ptr != nullptr) {
