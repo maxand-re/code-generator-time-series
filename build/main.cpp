@@ -1,5 +1,4 @@
 #include "generated/generated_max_width_plateau.hpp"
-#include "generated/generated_max_max_plateau.hpp"
 
 
 int main() {

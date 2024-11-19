@@ -65,7 +65,6 @@ Decoration::Result Decoration::apply_decorator(
     int R = default_gf;
 
     const auto json = get_json(pattern);
-
     auto semantics = Transducer::process(series, json);
 
     const int after = json.at("after").get<int>();
@@ -241,6 +240,9 @@ Decoration::Result Decoration::apply_decorator(
     } else {
         ct[n].setValue(0);
         at[n].setValue(1);
+    }
+    for (int i = 0; i < series.size(); i++) {
+        cout << f[i].getValue() << ",\n";
     }
 
     return {
