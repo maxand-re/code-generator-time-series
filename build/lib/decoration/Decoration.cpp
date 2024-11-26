@@ -79,13 +79,13 @@ Decoration::Result* Decoration::apply_decorator(
         ct[i] = Node(0);
         f[i] = Node(0);
     }
-
+/*
     cout << "semantics: ";
     for (auto i = 0; i < semantics.size(); ++i) {
         cout << letter_to_string(semantics[i]) << ",";
     }
     cout << endl;
-
+*/
 
     for (auto i = 0; i < semantics.size(); ++i) {
         const int current_delta_f = delta_f == -1 ? series[i] : delta_f;
@@ -258,7 +258,7 @@ Decoration::Result* Decoration::apply_decorator(
         vector<Node>(f), R, C, D, result_value
     };
 
-
+/*
     cout << "at = [";
     for (auto at_i : result->at) {
         cout << at_i.getValue() << ", ";
@@ -278,6 +278,6 @@ Decoration::Result* Decoration::apply_decorator(
     cout << "]" << endl;
 
     cout << "result = " << aggregators.at(aggregator_string)(R, C) << endl;
-
+*/
     return result;
 }
