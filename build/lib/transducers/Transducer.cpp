@@ -1,8 +1,6 @@
 #include "Transducer.h"
 
 #include <fstream>
-#include <stdexcept>
-#include <nlohmann/json.hpp>
 
 using namespace std;
 
@@ -12,15 +10,7 @@ string Transducer::compare(const int a, const int b) {
     return ">";
 }
 
-vector<Semantic::Letter> Transducer::process(vector<int> series, string pattern) {
-    ifstream file("resources/transducers/" + pattern + ".json");
-    if (!file.is_open()) {
-        throw runtime_error("The selected pattern does not exist.");
-    }
-
-    nlohmann::json patternJson;
-    file >> patternJson;
-
+vector<Semantic::Letter> Transducer::process(const vector<int> &series, nlohmann::json patternJson) {
     vector<Semantic::Letter> result;
     auto state = patternJson.at("entry").get<string>();
 
@@ -39,8 +29,6 @@ vector<Semantic::Letter> Transducer::process(vector<int> series, string pattern)
             }
         }
     }
-
-    file.close();
 
     return result;
 }
