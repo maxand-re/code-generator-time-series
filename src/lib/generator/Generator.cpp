@@ -44,7 +44,7 @@ std::string Generator::generate_function_code(
     std::stringstream ss;
     ss << "#include <vector>\n\n"
             << "#include \"../lib/decoration/Decoration.h\"\n\n"
-            << "inline const Decoration::Result* " << function_name << "(std::vector<int> series) {\n"
+            << "inline Decoration::Result* " << function_name << "(std::vector<int> series) {\n"
             << "    int default_gf = " << convert_to_code(default_gf) << ";\n"
             << "    int neutral_f = " << convert_to_code(neutral_f) << ";\n"
             << "    int delta_f = " << this->features.at(feature).delta << ";\n\n"

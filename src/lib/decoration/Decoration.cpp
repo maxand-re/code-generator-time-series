@@ -49,7 +49,7 @@ int calculate_operator(const string &operator_string, int valueA, int valueB) {
     return 0;
 }
 
-Decoration::Result Decoration::apply_decorator(
+Decoration::Result* Decoration::apply_decorator(
     const vector<int> &series,
     int default_gf,
     int neutral_f,
@@ -250,35 +250,34 @@ Decoration::Result Decoration::apply_decorator(
         at[n].setValue(1);
     }
 
+    int result_value = aggregators.at(aggregator_string)(R, C);
+
+    auto *result = new Result{
+        vector<Node>(at),
+        vector<Node>(ct),
+        vector<Node>(f), R, C, D, result_value
+    };
+
+
     cout << "at = [";
-    for (auto at_i : at) {
+    for (auto at_i : result->at) {
         cout << at_i.getValue() << ", ";
     }
     cout << "]" << endl;
 
     cout << "ct = [";
-    for (auto ct_i : ct) {
+    for (auto ct_i : result->ct) {
         cout << ct_i.getValue() << ", ";
     }
     cout << "]" << endl;
 
     cout << "f = [";
-    for (auto f_i : f) {
+    for (auto f_i : result->f) {
         cout << f_i.getValue() << ", ";
     }
     cout << "]" << endl;
 
     cout << "result = " << aggregators.at(aggregator_string)(R, C) << endl;
 
-    int result = aggregators.at(aggregator_string)(R, C);
-
-    return {
-        .at = &at,
-        .ct = &ct,
-        .f = &f,
-        .R = &R,
-        .C = &C,
-        .D = &D,
-        .result = &result
-    };
+    return result;
 }

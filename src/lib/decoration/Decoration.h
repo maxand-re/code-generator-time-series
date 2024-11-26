@@ -41,19 +41,21 @@ public:
 
 class Decoration {
 public:
-    struct Result {
+    class Result {
+    public:
         vector<Node> at;
         vector<Node> ct;
         vector<Node> f;
-        int R;
-        int C;
-        int D;
-        int result;
+        int R, C, D, result_value;
+
+        Result(const vector<Node>& at, const vector<Node>& ct, const vector<Node>& f,
+               int R, int C, int D, int result_value)
+            : at(at), ct(ct), f(f), R(R), C(C), D(D), result_value(result_value) {}
     };
 
     static nlohmann::json get_json(const string &pattern);
 
-    static Result apply_decorator(const vector<int> &series,
+    static Result *apply_decorator(const vector<int> &series,
                                 int default_gf,
                                 int neutral_f,
                                 int delta_f,
