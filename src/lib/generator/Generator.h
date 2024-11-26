@@ -74,6 +74,8 @@ class Generator {
 
     static string convert_to_code(int value);
 
+    static void update_main(const std::string &function_name);
+
     std::string generate_function_code(const std::string &aggregator_name, const std::string &feature_name,
                                               const std::string &pattern, const std::string &operator_string, double default_gf, double
                                               neutral_f);
