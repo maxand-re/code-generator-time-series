@@ -42,18 +42,24 @@ void Generator::update_main(const std::string& function_name) {
     std::stringstream main_content;
 
     if (main_exists) {
-        std::string line;
         bool include_added = false;
+        bool inside_main = false;
         bool call_added = false;
 
+        std::string line;
         while (std::getline(existing_main, line)) {
             if (!include_added && line.find("#include") != std::string::npos && line < include_line) {
                 main_content << include_line;
                 include_added = true;
             }
 
-            if (!call_added && line.find("auto result_") != std::string::npos && line < call_line) {
-                main_content << call_line << print_line;
+            if (line.find("int main()") != std::string::npos) {
+                inside_main = true;
+            }
+
+            if (inside_main && !call_added && line.find("return 0;") != std::string::npos) {
+                main_content << call_line;
+                main_content << print_line;
                 call_added = true;
             }
 
@@ -61,13 +67,14 @@ void Generator::update_main(const std::string& function_name) {
         }
 
         if (!include_added) main_content << include_line;
-        if (!call_added) main_content << call_line << print_line;
+        if (!call_added) {
+            throw std::runtime_error("Failed to add calls inside main(). Check main.cpp structure.");
+        }
     } else {
         main_content << "#include <iostream>\n";
         main_content << "#include <vector>\n";
         main_content << "#include \"../lib/decoration/Decoration.h\"\n";
-        main_content << "#include \"" << function_name << ".hpp\"\n\n";
-
+        main_content << include_line << "\n";
         main_content << "void print_result(const Decoration::Result* result, const string& function_name) {\n";
         main_content << "    cout << \"--------------\" << endl;\n";
         main_content << "    cout << \"Function: \" << function_name << endl;\n";
@@ -76,19 +83,16 @@ void Generator::update_main(const std::string& function_name) {
         main_content << "        cout << at_i.getValue() << \", \";\n";
         main_content << "    }\n";
         main_content << "    cout << \"]\" << endl;\n";
-        main_content << "\n";
         main_content << "    cout << \"ct = [\";\n";
         main_content << "    for (auto ct_i : result->ct) {\n";
         main_content << "        cout << ct_i.getValue() << \", \";\n";
         main_content << "    }\n";
         main_content << "    cout << \"]\" << endl;\n";
-        main_content << "\n";
         main_content << "    cout << \"f = [\";\n";
         main_content << "    for (auto f_i : result->f) {\n";
         main_content << "        cout << f_i.getValue() << \", \";\n";
         main_content << "    }\n";
         main_content << "    cout << \"]\" << endl;\n";
-        main_content << "\n";
         main_content << "    cout << \"result = \" << result->result_value << endl;\n";
         main_content << "    cout << \"--------------\" << endl;\n";
         main_content << "}\n";
@@ -107,6 +111,7 @@ void Generator::update_main(const std::string& function_name) {
     updated_main << main_content.str();
     updated_main.close();
 }
+
 
 std::string Generator::generate_function_code(
     const std::string &aggregator_name,
