@@ -18,8 +18,8 @@ add_executable(generate_code_build
         lib/decoration/Decoration.h
         lib/generator/Generator.cpp
         lib/generator/Generator.h
-        main.cpp
         ${SOURCE_FILES}
+        generated/main.cpp
 )
 
 add_custom_command(
