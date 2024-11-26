@@ -10,6 +10,9 @@ Generator::Generator(const Feature feature, const Aggregator aggregator, std::st
     : feature(feature), aggregator(aggregator), pattern(std::move(pattern)) {
 }
 
+Generator::Generator(std::string pattern) : feature(), aggregator(), pattern(std::move(pattern)) {
+}
+
 double Generator::get_default_gf() const {
     switch (aggregator) {
         case Max: return this->features.at(this->feature).min_f;
@@ -123,8 +126,6 @@ std::string Generator::generate_function_code(
 ) {
     const string function_name = aggregator_name + "_" + feature_name + "_" + pattern;
 
-
-
     std::ofstream file("generated/" + function_name + ".hpp");
     std::stringstream ss;
     ss << "#include <vector>\n\n"
@@ -176,3 +177,8 @@ void Generator::generate() {
 
     update_main(function_name);
 }
+
+void Generator::generate_anomaly_detection() {
+
+}
+

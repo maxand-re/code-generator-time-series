@@ -115,8 +115,10 @@ class Generator {
 
 public:
     Generator(Feature feature, Aggregator aggregator, std::string pattern);
+    explicit Generator(std::string pattern);
 
     void generate();
+    void generate_anomaly_detection();
 };
 
 

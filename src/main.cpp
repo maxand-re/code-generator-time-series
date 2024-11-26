@@ -6,15 +6,17 @@ void print_help() {
     std::cout <<
             "Usage: ./generate_code --pattern <pattern_name> --feature <feature_type> --aggregator <aggregator_type>\n";
     std::cout << "Options:\n";
-    std::cout << "  --pattern       Specify the pattern to analyze (e.g., peak, plateau, zigzag, ...)\n";
-    std::cout << "  --feature       Specify the feature to compute (e.g., one, width, surface, max, min, range)\n";
-    std::cout << "  --aggregator    Specify the aggregator to compute (e.g., min, max, sum)\n";
+    std::cout << "  --pattern         Specify the pattern to analyze (e.g., peak, plateau, zigzag, ...)\n";
+    std::cout << "  --feature         Specify the feature to compute (e.g., one, width, surface, max, min, range)\n";
+    std::cout << "  --aggregator      Specify the aggregator to compute (e.g., min, max, sum)\n";
+    std::cout << "  --detect-anomaly  Create an anomaly detector for the given pattern (--pattern)\n";
 }
 
 int main(const int argc, char *argv[]) {
     std::string pattern_raw;
     std::string feature_raw;
     std::string aggregator_raw;
+    bool detect_anomaly = false;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -25,6 +27,8 @@ int main(const int argc, char *argv[]) {
             feature_raw = argv[++i];
         } else if (arg == "--aggregator" && i + 1 < argc) {
             aggregator_raw = argv[++i];
+        } else if (arg == "--detect-anomaly") {
+            detect_anomaly = true;
         } else if (arg == "--help") {
             print_help();
             return 0;
@@ -33,6 +37,17 @@ int main(const int argc, char *argv[]) {
             print_help();
             return 1;
         }
+    }
+
+    if (detect_anomaly && !pattern_raw.empty()) {
+        try {
+            Generator generator{pattern_raw};
+            generator.generate_anomaly_detection();
+        } catch (const std::invalid_argument &e) {
+            std::cerr << "Error: " << e.what() << "\n";
+            return 1;
+        }
+        return 0;
     }
 
     if (pattern_raw.empty() || feature_raw.empty() || aggregator_raw.empty()) {
