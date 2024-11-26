@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include <unordered_map>
+#include <set>
 
 using namespace std;
 
@@ -52,6 +54,12 @@ public:
                int R, int C, int D, int result_value)
             : at(at), ct(ct), f(f), R(R), C(C), D(D), result_value(result_value) {}
     };
+
+    static void print_anomalies(const unordered_map<int, set<string>>& anomaly_map);
+
+    static unordered_map<int, set<string>> detect_anomalies(const std::map<std::string, Result*>& result_map);
+
+    static void print_result(const Result *result, const string &function_name);
 
     static nlohmann::json get_json(const string &pattern);
 

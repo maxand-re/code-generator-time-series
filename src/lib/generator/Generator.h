@@ -9,8 +9,7 @@ using namespace std;
 
 enum Aggregator {
     Max,
-    Min,
-    Sum
+    Min
 };
 
 enum Feature {
@@ -36,8 +35,7 @@ inline Feature to_feature(const std::string &feature) {
 inline Aggregator to_aggregator(const std::string &aggregator) {
     if (aggregator == "max") return Max;
     if (aggregator == "min") return Min;
-    if (aggregator == "sum") return Sum;
-    throw std::invalid_argument("Invalid aggregator value. Must be one of:\n - max\n - min\n - sum");
+    throw std::invalid_argument("Invalid aggregator value. Must be one of:\n - max\n - min");
 }
 
 inline std::string to_string(const Feature feature) {
@@ -56,7 +54,6 @@ inline std::string to_string(const Aggregator aggregator) {
     switch (aggregator) {
         case Max: return "max";
         case Min: return "min";
-        case Sum: return "sum";
         default: throw std::invalid_argument("Invalid aggregator value");
     }
 }

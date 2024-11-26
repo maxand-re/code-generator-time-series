@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <unordered_map>
+#include <set>
 
 #include "../transducers/Transducer.h"
 
@@ -16,7 +18,58 @@ map<string, function<int(int, int)> > aggregators = {
     {"max", [](int x, int y) { return max(x, y); }},
     {"sum", [](int x, int y) { return x + y; }},
 };
+void Decoration::print_anomalies(const unordered_map<int, set<string>>& anomaly_map) {
+    cout << "Anomaly detection results:" << endl;
+    if (anomaly_map.empty()) {
+        cout << "No anomalies detected." << endl;
+    } else {
+        for (const auto &[index, function_names]: anomaly_map) {
+            if (function_names.size() > 1) {
+                cout << "   - Anomaly detected at index: " << index << ", with functions: ";
+                for (const auto &name: function_names) {
+                    cout << name << ", ";
+                }
+                cout << endl;
+            }
+        }
+    }
+}
 
+unordered_map<int, set<string>> Decoration::detect_anomalies(const map<string, Result *> &result_map) {
+    unordered_map<int, set<string>> anomaly_map;
+    for (const auto &[function_name, result]: result_map) {
+        if (!result) continue;
+
+        for (size_t idx = 0; idx < result->f.size(); ++idx) {
+            if (result->f[idx].getValue() == 1) {
+                anomaly_map[idx].insert(function_name);
+            }
+        }
+    }
+
+    return anomaly_map;
+}
+
+void Decoration::print_result(const Result *result, const string &function_name) {
+    cout << "Function: " << function_name << endl;
+    cout << "at = [";
+    for (auto at_i: result->at) {
+        cout << at_i.getValue() << ", ";
+    }
+    cout << "]" << endl;
+    cout << "ct = [";
+    for (auto ct_i: result->ct) {
+        cout << ct_i.getValue() << ", ";
+    }
+    cout << "]" << endl;
+    cout << "f = [";
+    for (auto f_i: result->f) {
+        cout << f_i.getValue() << ", ";
+    }
+    cout << "]" << endl;
+    cout << "result = " << result->result_value << endl;
+    cout << "--------------" << endl;
+}
 
 nlohmann::json Decoration::get_json(const string &pattern) {
     nlohmann::json patternJson;
@@ -49,7 +102,7 @@ int calculate_operator(const string &operator_string, int valueA, int valueB) {
     return 0;
 }
 
-Decoration::Result* Decoration::apply_decorator(
+Decoration::Result *Decoration::apply_decorator(
     const vector<int> &series,
     int default_gf,
     int neutral_f,
@@ -221,7 +274,7 @@ Decoration::Result* Decoration::apply_decorator(
                 }
                 D = neutral_f;
                 break;
-            default: throw std::invalid_argument("Invalid Semantic::Letter value");
+            default: throw invalid_argument("Invalid Semantic::Letter value");
         }
     }
 

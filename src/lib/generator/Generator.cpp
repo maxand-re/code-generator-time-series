@@ -17,7 +17,6 @@ double Generator::get_default_gf() const {
     switch (aggregator) {
         case Max: return this->features.at(this->feature).min_f;
         case Min: return this->features.at(this->feature).max_f;
-        case Sum: return 0;
         default: return -1;
     }
 }
@@ -34,11 +33,13 @@ string Generator::convert_to_code(const int value) {
     return std::to_string(value);
 }
 
-void Generator::update_main(const std::string& function_name) {
+void Generator::update_main(const std::string &function_name) {
     const std::string main_file_path = "generated/main.cpp";
     const std::string include_line = "#include \"" + function_name + ".hpp\"\n";
     const std::string call_line = "    auto result_" + function_name + " = " + function_name + "(series);\n";
-    const std::string print_line = "    print_result(result_" + function_name + ", \"" + function_name + "\");\n";
+    const std::string print_line = "    Decoration::print_result(result_" + function_name + ", \"" + function_name +
+                                   "\");\n";
+    const std::string push_result = "    results.insert({ \"" + function_name + "\", result_" + function_name + "});\n\n";
 
     std::ifstream existing_main(main_file_path);
     bool main_exists = existing_main.good();
@@ -60,9 +61,10 @@ void Generator::update_main(const std::string& function_name) {
                 inside_main = true;
             }
 
-            if (inside_main && !call_added && line.find("return 0;") != std::string::npos) {
+            if (inside_main && !call_added && line.find("auto anomalies = Decoration::detect_anomalies(results);") != std::string::npos) {
                 main_content << call_line;
                 main_content << print_line;
+                main_content << push_result;
                 call_added = true;
             }
 
@@ -78,32 +80,15 @@ void Generator::update_main(const std::string& function_name) {
         main_content << "#include <vector>\n";
         main_content << "#include \"../lib/decoration/Decoration.h\"\n";
         main_content << include_line << "\n";
-        main_content << "void print_result(const Decoration::Result* result, const string& function_name) {\n";
-        main_content << "    cout << \"--------------\" << endl;\n";
-        main_content << "    cout << \"Function: \" << function_name << endl;\n";
-        main_content << "    cout << \"at = [\";\n";
-        main_content << "    for (auto at_i : result->at) {\n";
-        main_content << "        cout << at_i.getValue() << \", \";\n";
-        main_content << "    }\n";
-        main_content << "    cout << \"]\" << endl;\n";
-        main_content << "    cout << \"ct = [\";\n";
-        main_content << "    for (auto ct_i : result->ct) {\n";
-        main_content << "        cout << ct_i.getValue() << \", \";\n";
-        main_content << "    }\n";
-        main_content << "    cout << \"]\" << endl;\n";
-        main_content << "    cout << \"f = [\";\n";
-        main_content << "    for (auto f_i : result->f) {\n";
-        main_content << "        cout << f_i.getValue() << \", \";\n";
-        main_content << "    }\n";
-        main_content << "    cout << \"]\" << endl;\n";
-        main_content << "    cout << \"result = \" << result->result_value << endl;\n";
-        main_content << "    cout << \"--------------\" << endl;\n";
-        main_content << "}\n";
         main_content << "\n";
         main_content << "int main() {\n";
         main_content << "    const std::vector<int> series = {}; /* Insert your serie here */\n";
+        main_content << "    std::map<std::string, Decoration::Result*> results;\n\n";
         main_content << call_line;
         main_content << print_line;
+        main_content << push_result;
+        main_content << "    auto anomalies = Decoration::detect_anomalies(results);\n";
+        main_content << "    Decoration::print_anomalies(anomalies);\n\n";
         main_content << "    return 0;\n";
         main_content << "}\n";
     }
@@ -156,9 +141,6 @@ void Generator::generate() {
         case Min:
             default_gf = this->features.at(this->feature).max_f;
             break;
-        case Sum:
-            default_gf = 0;
-            break;
         default:
             throw runtime_error("The selected aggregator doesn't exist");
     }
@@ -179,6 +161,16 @@ void Generator::generate() {
 }
 
 void Generator::generate_anomaly_detection() {
+    const vector aggregators = {Min, Max};
 
+    const vector features = {One, Width, Surface, FMax, FMin, Range};
+
+    for (const auto &agg: aggregators) {
+        for (const auto &feat: features) {
+            this->aggregator = agg;
+            this->feature = feat;
+
+            this->generate();
+        }
+    }
 }
-
