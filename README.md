@@ -2,15 +2,35 @@
 
 This project implements a code generator for time series analysis, aiming to detect anomalies within time series data. 
 The tool generates code in C++ and applies structural constraints on time series data using finite transducers.
+# Requirements
+Cmake 3.10 or higher:
+```
+sudo apt-get install cmake
+```
+or 
+```
+brew install cmake
+```
 
+# Build
+To build the project, execute the following commands:
+```
+cmake .
+make
+```
 # Usage
 This tools requires nlohmann-json library. See here to install it: [nlohmann-json](https://github.com/nlohmann/json)
 
-Execute the following command to generate code for a given pattern, feature and aggregator:
+First, go to build directory:
 ```
-./generate_code --pattern peak --feature max --aggregator max
+cd build
 ```
-Execute the following command to generate code that allows to detect anomalies for a given pattern:
+
+Then, execute the generate code command for a given pattern, feature, aggregator and series e.g., peak, max, max, {1,2,3,4,5,6,7,8,9,10}:
+```
+./generate_code --pattern peak --feature max --aggregator max --series {1,2,3,4,5,6,7,8,9,10}
+```
+To detect anomalies first a specific pattern, execute the following, e.g. peak:
 ```
 ./generate_code --pattern peak --detect-anomaly
 ```
@@ -19,6 +39,8 @@ The parameters are:
 - feature: the feature to detect, e.g., max, min, etc.
 - aggregator: the aggregator to use, e.g., max, min, etc.
 - detect-anomaly: whether to detect anomalies or not.
+- series: the series to analyze, e.g., {1,2,3,4,5,6,7,8,9,10}.
+- help: to display the help message.
 
 ## Performance Analysis
 

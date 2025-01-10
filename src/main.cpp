@@ -1,25 +1,31 @@
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include "lib/generator/Generator.h"
 
+using namespace std;
+
 void print_help() {
-    std::cout <<
+    cout <<
             "Usage: ./generate_code --pattern <pattern_name> --feature <feature_type> --aggregator <aggregator_type>\n";
-    std::cout << "Options:\n";
-    std::cout << "  --pattern         Specify the pattern to analyze (e.g., peak, plateau, zigzag, ...)\n";
-    std::cout << "  --feature         Specify the feature to compute (e.g., one, width, surface, max, min, range)\n";
-    std::cout << "  --aggregator      Specify the aggregator to compute (e.g., min, max, sum)\n";
-    std::cout << "  --detect-anomaly  Create an anomaly detector for the given pattern (--pattern)\n";
+    cout << "Options:\n";
+    cout << "  --pattern         Specify the pattern to analyze (e.g., peak, plateau, zigzag, ...)\n";
+    cout << "  --feature         Specify the feature to compute (e.g., one, width, surface, max, min, range)\n";
+    cout << "  --aggregator      Specify the aggregator to compute (e.g., min, max, sum)\n";
+    cout << "  --detect-anomaly  Create an anomaly detector for the given pattern (--pattern)\n";
+    cout << "  --series          Specify the series to analyze (e.g. 1,2,3,4,5)\n";
+    cout << "  --help            Print this help message\n";
 }
 
 int main(const int argc, char *argv[]) {
-    std::string pattern_raw;
-    std::string feature_raw;
-    std::string aggregator_raw;
+    string pattern_raw;
+    string feature_raw;
+    string aggregator_raw;
+    vector<int> series = {};
     bool detect_anomaly = false;
 
     for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
+        string arg = argv[i];
 
         if (arg == "--pattern" && i + 1 < argc) {
             pattern_raw = argv[++i];
@@ -27,13 +33,26 @@ int main(const int argc, char *argv[]) {
             feature_raw = argv[++i];
         } else if (arg == "--aggregator" && i + 1 < argc) {
             aggregator_raw = argv[++i];
+        } else if (arg == "--series" && i + 1 < argc) {
+            string series_str = argv[++i];
+            if (series_str.front() == '[' && series_str.back() == ']') {
+                series_str = series_str.substr(1, series_str.size() - 2);
+            }
+            istringstream iss(series_str);
+            int number;
+            while (iss >> number) {
+                series.push_back(number);
+                if (iss.peek() == ',') {
+                    iss.ignore();
+                }
+            }
         } else if (arg == "--detect-anomaly") {
             detect_anomaly = true;
         } else if (arg == "--help") {
             print_help();
             return 0;
         } else {
-            std::cerr << "Unknown argument: " << arg << "\n";
+            cerr << "Unknown argument: " << arg << "\n";
             print_help();
             return 1;
         }
@@ -43,15 +62,15 @@ int main(const int argc, char *argv[]) {
         try {
             Generator generator{pattern_raw};
             generator.generate_anomaly_detection();
-        } catch (const std::invalid_argument &e) {
-            std::cerr << "Error: " << e.what() << "\n";
+        } catch (const invalid_argument &e) {
+            cerr << "Error: " << e.what() << "\n";
             return 1;
         }
         return 0;
     }
 
     if (pattern_raw.empty() || feature_raw.empty() || aggregator_raw.empty()) {
-        std::cerr << "Error: --pattern, --feature, and --aggregator arguments are required.\n";
+        cerr << "Error: --pattern, --feature, and --aggregator arguments are required.\n";
         print_help();
         return 1;
     }
@@ -60,10 +79,10 @@ int main(const int argc, char *argv[]) {
         Feature feature = to_feature(feature_raw);
         Aggregator aggregator = to_aggregator(aggregator_raw);
 
-        Generator generator{feature, aggregator, pattern_raw};
+        Generator generator{feature, aggregator, pattern_raw, series};
         generator.generate();
-    } catch (const std::invalid_argument &e) {
-        std::cerr << "Error: " << e.what() << "\n";
+    } catch (const invalid_argument &e) {
+        cerr << "Error: " << e.what() << "\n";
         return 1;
     }
 

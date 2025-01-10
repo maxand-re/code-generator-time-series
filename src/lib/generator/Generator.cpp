@@ -5,12 +5,13 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include <filesystem>
+using namespace std;
 
-Generator::Generator(const Feature feature, const Aggregator aggregator, std::string pattern)
-    : feature(feature), aggregator(aggregator), pattern(std::move(pattern)) {
+Generator::Generator(const Feature feature, const Aggregator aggregator, string pattern, const vector<int> &series)
+    : feature(feature), aggregator(aggregator), pattern(std::move(pattern)), series(series) {
 }
 
-Generator::Generator(std::string pattern) : feature(), aggregator(), pattern(std::move(pattern)) {
+Generator::Generator(string pattern) : feature(), aggregator(), pattern(std::move(pattern)) {
 }
 
 double Generator::get_default_gf() const {
@@ -22,100 +23,120 @@ double Generator::get_default_gf() const {
 }
 
 string Generator::convert_to_code(const int value) {
-    if (value == std::numeric_limits<int>::max()) {
-        return "std::numeric_limits<int>::max()";
+    if (value == numeric_limits<int>::max()) {
+        return "numeric_limits<int>::max()";
     }
 
-    if (value == std::numeric_limits<int>::min()) {
-        return "std::numeric_limits<int>::min()";
+    if (value == numeric_limits<int>::min()) {
+        return "numeric_limits<int>::min()";
     }
 
-    return std::to_string(value);
+    return to_string(value);
 }
 
-void Generator::update_main(const std::string &function_name) {
-    const std::string main_file_path = "generated/main.cpp";
-    const std::string include_line = "#include \"" + function_name + ".hpp\"\n";
-    const std::string call_line = "    auto result_" + function_name + " = " + function_name + "(series);\n";
-    const std::string print_line = "    Decoration::print_result(result_" + function_name + ", \"" + function_name +
-                                   "\");\n";
-    const std::string push_result = "    results.insert({ \"" + function_name + "\", result_" + function_name + "});\n\n";
+void Generator::update_main(const string &function_name) const {
+    const string main_file_path = "generated/main.cpp";
+    const string include_line = "#include \"" + function_name + ".hpp\"\n";
+    const string call_line = "    auto result_" + function_name + " = " + function_name + "(series);\n";
+    const string print_line = "    Decoration::print_result(result_" + function_name + ", \"" + function_name + "\");\n";
+    const string push_result = "    results.insert({ \"" + function_name + "\", result_" + function_name + " });\n\n";
 
-    std::ifstream existing_main(main_file_path);
-    bool main_exists = existing_main.good();
-    std::stringstream main_content;
+    stringstream new_series;
+    new_series << "    const vector<int> series = {";
+    for (size_t i = 0; i < this->series.size(); ++i) {
+        new_series << this->series[i];
+        if (i < this->series.size() - 1) {
+            new_series << ", ";
+        }
+    }
+    new_series << "};";
 
-    if (main_exists) {
-        bool include_added = false;
-        bool inside_main = false;
+    ifstream existing_main(main_file_path);
+    stringstream pre_main_content, post_main_content;
+
+    if (existing_main.good()) {
+        bool series_found = false;
         bool call_added = false;
+        bool include_added = false;
+        string line;
+        bool inside_main = false;
 
-        std::string line;
-        while (std::getline(existing_main, line)) {
-            if (!include_added && line.find("#include") != std::string::npos && line < include_line) {
-                main_content << include_line;
-                include_added = true;
-            }
-
-            if (line.find("int main()") != std::string::npos) {
+        while (getline(existing_main, line)) {
+            if (!inside_main && line.find("#include") != string::npos) {
+                pre_main_content << line << "\n";
+                if (line.find(function_name + ".hpp") != string::npos) {
+                    include_added = true;
+                }
+            } else if (!inside_main && line.find("int main()") != string::npos) {
                 inside_main = true;
-            }
 
-            if (inside_main && !call_added && line.find("auto anomalies = Decoration::detect_anomalies(results);") != std::string::npos) {
-                main_content << call_line;
-                main_content << print_line;
-                main_content << push_result;
-                call_added = true;
-            }
+                if (!include_added) {
+                    pre_main_content << include_line;
+                    include_added = true;
+                }
 
-            main_content << line << "\n";
+                pre_main_content << line << "\n";
+            } else if (inside_main) {
+                if (line.find("const vector<int> series =") != string::npos) {
+                    series_found = true;
+                    post_main_content << (this->series.empty() ? line : new_series.str()) << "\n";
+                } else if (line.find(function_name + "(series)") != string::npos) {
+                    cout << "Warning: Function already generated." << endl;
+                    call_added = true;
+                    post_main_content << line << "\n";
+                } else if (!call_added && line.find("auto anomalies = Decoration::detect_anomalies(results);") != string::npos) {
+                    post_main_content << call_line << print_line << push_result;
+                    call_added = true;
+                    post_main_content << line << "\n";
+                } else {
+                    post_main_content << line << "\n";
+                }
+            } else {
+                pre_main_content << line << "\n";
+            }
         }
 
-        if (!include_added) main_content << include_line;
-        if (!call_added) {
-            throw std::runtime_error("Failed to add calls inside main(). Check main.cpp structure.");
-        }
+        if (!call_added) throw runtime_error("Failed to add calls inside main(). Check main.cpp structure.");
+        if (!series_found && !this->series.empty()) post_main_content << new_series.str() << "\n";
     } else {
-        main_content << "#include <iostream>\n";
-        main_content << "#include <vector>\n";
-        main_content << "#include \"../lib/decoration/Decoration.h\"\n";
-        main_content << include_line << "\n";
-        main_content << "\n";
-        main_content << "int main() {\n";
-        main_content << "    const std::vector<int> series = {}; /* Insert your serie here */\n";
-        main_content << "    std::map<std::string, Decoration::Result*> results;\n\n";
-        main_content << call_line;
-        main_content << print_line;
-        main_content << push_result;
-        main_content << "    auto anomalies = Decoration::detect_anomalies(results);\n";
-        main_content << "    Decoration::print_anomalies(anomalies);\n\n";
-        main_content << "    return 0;\n";
-        main_content << "}\n";
+        // Create `main.cpp` if doesn't exist
+        pre_main_content << "#include <iostream>\n"
+                         << "#include <vector>\n"
+                         << "#include \"../lib/decoration/Decoration.h\"\n"
+                         << include_line << "\n\n";
+        post_main_content << "int main() {\n"
+                          << new_series.str() << "\n"
+                          << "    map<string, Decoration::Result*> results;\n\n"
+                          << call_line << print_line << push_result
+                          << "    auto anomalies = Decoration::detect_anomalies(results);\n"
+                          << "    Decoration::print_anomalies(anomalies);\n\n"
+                          << "    return 0;\n"
+                          << "}\n";
     }
 
     existing_main.close();
 
-    std::ofstream updated_main(main_file_path);
-    updated_main << main_content.str();
+    ofstream updated_main(main_file_path);
+    updated_main << pre_main_content.str();
+    updated_main << post_main_content.str();
     updated_main.close();
 }
 
-
-std::string Generator::generate_function_code(
-    const std::string &aggregator_name,
-    const std::string &feature_name,
-    const std::string &pattern,
-    const std::string &operator_string,
+string Generator::generate_function_code(
+    const string &aggregator_name,
+    const string &feature_name,
+    const string &pattern,
+    const string &operator_string,
     double default_gf,
     double neutral_f
 ) {
     const string function_name = aggregator_name + "_" + feature_name + "_" + pattern;
 
-    std::ofstream file("generated/" + function_name + ".hpp");
-    std::stringstream ss;
+    ofstream file("generated/" + function_name + ".hpp");
+    stringstream ss;
     ss << "#include <vector>\n\n"
             << "#include \"../lib/decoration/Decoration.h\"\n\n"
-            << "inline Decoration::Result* " << function_name << "(std::vector<int> series) {\n"
+            << "inline Decoration::Result* " << function_name << "(vector<int> series) {\n"
             << "    int default_gf = " << convert_to_code(default_gf) << ";\n"
             << "    int neutral_f = " << convert_to_code(neutral_f) << ";\n"
             << "    int delta_f = " << this->features.at(feature).delta << ";\n\n"
