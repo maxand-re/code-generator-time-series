@@ -21,9 +21,10 @@ make
 # Usage
 This tools requires nlohmann-json library. See here to install it: [nlohmann-json](https://github.com/nlohmann/json)
 
-First, go to build directory:
+First, go to build directory and run cmake:
 ```
 cd build
+cmake .
 ```
 
 Then, execute the generate code command for a given pattern, feature, aggregator and series e.g., peak, max, max, {1,2,3,4,5,6,7,8,9,10}:
