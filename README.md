@@ -6,14 +6,19 @@ The tool generates code in C++ and applies structural constraints on time series
 # Usage
 This tools requires nlohmann-json library. See here to install it: [nlohmann-json](https://github.com/nlohmann/json)
 
-Execute the following command to generate code:
+Execute the following command to generate code for a given pattern, feature and aggregator:
 ```
 ./generate_code --pattern peak --feature max --aggregator max
+```
+Execute the following command to generate code that allows to detect anomalies for a given pattern:
+```
+./generate_code --pattern peak --detect-anomaly
 ```
 The parameters are:
 - pattern: the pattern to detect, e.g., peak, valley, etc.
 - feature: the feature to detect, e.g., max, min, etc.
 - aggregator: the aggregator to use, e.g., max, min, etc.
+- detect-anomaly: whether to detect anomalies or not.
 
 ## Performance Analysis
 
