@@ -1,0 +1,74 @@
+{
+  "after": 1,
+  "entry": "s",
+  "states": {
+    "s": [
+      {
+        "condition": "<",
+        "next": "s",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "s",
+        "semantic": "out"
+      },
+      {
+        "condition": ">",
+        "next": "r",
+        "semantic": "out"
+      }
+    ],
+    "r": [
+      {
+        "condition": "<",
+        "next": "t",
+        "semantic": "found"
+      },
+      {
+        "condition": "=",
+        "next": "u",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": ">",
+        "next": "r",
+        "semantic": "maybe_b"
+      }
+    ],
+    "u": [
+      {
+        "condition": "=",
+        "next": "u",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": ">",
+        "next": "r",
+        "semantic": "maybe_b"
+      },
+      {
+        "condition": "<",
+        "next": "s",
+        "semantic": "out_r"
+      }
+    ],
+    "t": [
+      {
+        "condition": "<",
+        "next": "t",
+        "semantic": "in"
+      },
+      {
+        "condition": "=",
+        "next": "t",
+        "semantic": "maybe_a"
+      },
+      {
+        "condition": ">",
+        "next": "r",
+        "semantic": "out_a"
+      }
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "after": 1,
+  "entry": "start",
+  "states": {
+    "start": [
+      {
+        "condition": "<",
+        "next": "a",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out"
+      },
+      {
+        "condition": ">",
+        "next": "d",
+        "semantic": "out"
+      }
+    ],
+    "a": [
+      {
+        "condition": "<",
+        "next": "a",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out"
+      },
+      {
+        "condition": ">",
+        "next": "b",
+        "semantic": "maybe_b"
+      }
+    ],
+    "b": [
+      {
+        "condition": "<",
+        "next": "c",
+        "semantic": "found"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out_r"
+      },
+      {
+        "condition": ">",
+        "next": "d",
+        "semantic": "out_r"
+      }
+    ],
+    "d": [
+      {
+        "condition": ">",
+        "next": "d",
+        "semantic": "out"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out"
+      },
+      {
+        "condition": "<",
+        "next": "e",
+        "semantic": "maybe_b"
+      }
+    ],
+    "e": [
+      {
+        "condition": "<",
+        "next": "a",
+        "semantic": "out_r"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out_r"
+      },
+      {
+        "condition": ">",
+        "next": "f",
+        "semantic": "found"
+      }
+    ],
+    "f": [
+      {
+        "condition": "<",
+        "next": "c",
+        "semantic": "in"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out_a"
+      },
+      {
+        "condition": ">",
+        "next": "d",
+        "semantic": "out_a"
+      }
+    ],
+    "c": [
+      {
+        "condition": "<",
+        "next": "a",
+        "semantic": "out_a"
+      },
+      {
+        "condition": "=",
+        "next": "start",
+        "semantic": "out_a"
+      },
+      {
+        "condition": ">",
+        "next": "f",
+        "semantic": "in"
+      }
+    ]
+  }
+}

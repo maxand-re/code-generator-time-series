@@ -23,34 +23,34 @@
       {
         "condition": "<",
         "next": "rising",
-        "semantic": "out"
+        "semantic": "maybe_b"
       },
       {
         "condition": "=",
-        "next": "plateau",
+        "next": "rising",
         "semantic": "maybe_b"
       },
       {
         "condition": ">",
-        "next": "start",
-        "semantic": "found_e"
+        "next": "peak",
+        "semantic": "found"
       }
     ],
-    "plateau": [
+    "peak": [
       {
         "condition": "<",
         "next": "rising",
-        "semantic": "out_r"
+        "semantic": "out_a"
       },
       {
         "condition": "=",
-        "next": "plateau",
+        "next": "peak",
         "semantic": "maybe_b"
       },
       {
         "condition": ">",
-        "next": "start",
-        "semantic": "found_e"
+        "next": "peak",
+        "semantic": "in"
       }
     ]
   }
