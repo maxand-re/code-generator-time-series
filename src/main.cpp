@@ -9,12 +9,13 @@ void print_help() {
     cout <<
             "Usage: ./generate_code --pattern <pattern_name> --feature <feature_type> --aggregator <aggregator_type>\n";
     cout << "Options:\n";
-    cout << "  --pattern         Specify the pattern to analyze (e.g., peak, plateau, zigzag, ...)\n";
-    cout << "  --feature         Specify the feature to compute (e.g., one, width, surface, max, min, range)\n";
-    cout << "  --aggregator      Specify the aggregator to compute (e.g., min, max, sum)\n";
-    cout << "  --detect-anomaly  Create an anomaly detector for the given pattern (--pattern)\n";
-    cout << "  --series          Specify the series to analyze (e.g. 1,2,3,4,5)\n";
-    cout << "  --help            Print this help message\n";
+    cout << "  --pattern               Specify the pattern to analyze (e.g., peak, plateau, zigzag, ...)\n";
+    cout << "  --feature               Specify the feature to compute (e.g., one, width, surface, max, min, range)\n";
+    cout << "  --aggregator            Specify the aggregator to compute (e.g., min, max, sum)\n";
+    cout << "  --detect-anomaly        Create an anomaly detector for the given pattern (--pattern)\n";
+    cout << "  --evaluate-performance  Measure the performance of the generated code\n";
+    cout << "  --series                Specify the series to analyze (e.g. 1,2,3,4,5)\n";
+    cout << "  --help                  Print this help message\n";
 }
 
 int main(const int argc, char *argv[]) {
@@ -23,6 +24,7 @@ int main(const int argc, char *argv[]) {
     string aggregator_raw;
     vector<int> series = {};
     bool detect_anomaly = false;
+    bool evaluate_performance = false;
 
     for (int i = 1; i < argc; ++i) {
         string arg = argv[i];
@@ -48,6 +50,8 @@ int main(const int argc, char *argv[]) {
             }
         } else if (arg == "--detect-anomaly") {
             detect_anomaly = true;
+        } else if (arg == "--evaluate-performance") {
+            evaluate_performance = true;
         } else if (arg == "--help") {
             print_help();
             return 0;
@@ -60,7 +64,7 @@ int main(const int argc, char *argv[]) {
 
     if (detect_anomaly && !pattern_raw.empty()) {
         try {
-            Generator generator{pattern_raw};
+            Generator generator{pattern_raw, series, evaluate_performance};
             generator.generate_anomaly_detection();
         } catch (const invalid_argument &e) {
             cerr << "Error: " << e.what() << "\n";
@@ -79,7 +83,7 @@ int main(const int argc, char *argv[]) {
         Feature feature = to_feature(feature_raw);
         Aggregator aggregator = to_aggregator(aggregator_raw);
 
-        Generator generator{feature, aggregator, pattern_raw, series};
+        Generator generator{feature, aggregator, pattern_raw, series, evaluate_performance};
         generator.generate();
     } catch (const invalid_argument &e) {
         cerr << "Error: " << e.what() << "\n";

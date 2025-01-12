@@ -35,47 +35,39 @@ To detect anomalies first a specific pattern, execute the following, e.g. peak:
 ```
 ./generate_code --pattern peak --detect-anomaly
 ```
+To evaluate the performance of the code generator, execute the following:
+```
+./generate_code --pattern peak --evaluate-performance
+```
 The parameters are:
 - pattern: the pattern to detect, e.g., peak, valley, etc.
 - feature: the feature to detect, e.g., max, min, etc.
 - aggregator: the aggregator to use, e.g., max, min, etc.
 - detect-anomaly: whether to detect anomalies or not.
 - series: the series to analyze, e.g., {1,2,3,4,5,6,7,8,9,10}.
+- evaluate-performance: whether to evaluate the performance of the code generator or not.
 - help: to display the help message.
 
 ## Performance Analysis
 
 ### Testing Methodology
-The performance testing was conducted using the following setup:
-- Input size: 1000 integers
-- Value range: 1-100 (uniform distribution)
-- Number of iterations: 100 runs
-- Timing precision: microseconds
-- Random number generation: Mersenne Twister (mt19937)
-
-### Implementation Details
-The performance measurement implementation leverages C++'s `std::chrono` library for high-precision timing:
-```cpp
-auto start = std::chrono::high_resolution_clock::now();
-min_width_peak(series);
-auto stop = std::chrono::high_resolution_clock::now();
+We use this command:
 ```
+./generate_code --pattern peak --evaluate-performance
+```
+With that, we are able to evaluate the solving time and memory usage of each pattern / feature / aggregator combination. 
+For our tests, we use the following parameters:
+- Input size: 1000 integers
+- Value range: 1-100
+- Timing precision: microseconds
+- Random number generation
+- Multiple runs
 
-To ensure reliable results, the testing procedure:
-1. Generates a new random sequence for each iteration
-2. Measures execution time using high-resolution clock
-3. Calculates the average execution time across all runs
-
-### Results
-
-| Name           | Average time |
-|----------------|--------------|
-| min_width_peak | 3.964ms      |
-| max_max_peak   | 4.021ms      |
-| min_max_peak   | 4.026ms      |
-|                |              |
-|                |              |
-
+Here are how we initialize the random series:
+```
+std::vector<int> series(1000);
+ranges::generate(series, []() { return rand() % 100 + 1; });
+```
 
 # Transducers and Constraints
 ![transducer](/.github/images/transducer.png)
