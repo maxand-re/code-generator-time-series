@@ -18,7 +18,8 @@ map<string, function<int(int, int)> > aggregators = {
     {"max", [](int x, int y) { return max(x, y); }},
     {"sum", [](int x, int y) { return x + y; }},
 };
-void Decoration::print_anomalies(const unordered_map<int, set<string>>& anomaly_map) {
+
+void Decoration::print_anomalies(const unordered_map<int, set<string> > &anomaly_map) {
     cout << "Anomaly detection results:" << endl;
     if (anomaly_map.empty()) {
         cout << "No anomalies detected." << endl;
@@ -35,8 +36,8 @@ void Decoration::print_anomalies(const unordered_map<int, set<string>>& anomaly_
     }
 }
 
-unordered_map<int, set<string>> Decoration::detect_anomalies(const map<string, Result *> &result_map) {
-    unordered_map<int, set<string>> anomaly_map;
+unordered_map<int, set<string> > Decoration::detect_anomalies(const map<string, Result *> &result_map) {
+    unordered_map<int, set<string> > anomaly_map;
     for (const auto &[function_name, result]: result_map) {
         if (!result) continue;
 
@@ -127,103 +128,92 @@ Decoration::Result *Decoration::apply_decorator(
     vector<Node> ct(series.size());
     vector<Node> f(series.size());
 
-    for (int i = 0; i < series.size(); i++) {
+    for (size_t i = 0; i < series.size(); i++) {
         at[i] = Node(0);
         ct[i] = Node(0);
         f[i] = Node(0);
     }
 
-    for (auto i = 0; i < semantics.size(); ++i) {
+    for (size_t i = 0; i < semantics.size(); ++i) {
         const int current_delta_f = delta_f == -1 ? series[i] : delta_f;
         const int current_delta_f_1 = delta_f == -1 ? series[i + 1] : delta_f;
 
         switch (semantics[i]) {
-            case Semantic::OUT: //
+            case Semantic::OUT:
                 f[i].setValue(0);
-                ct[i].ptr = &ct[i + 1];
-                at[i].ptr = &at[i + 1];
-
+                ct[i].ptr = std::make_shared<Node>(ct[i + 1]);
+                at[i].ptr = std::make_shared<Node>(at[i + 1]);
                 break;
-            case Semantic::OUT_R: //
+            case Semantic::OUT_R:
                 f[i].setValue(0);
-                ct[i].ptr = &ct[i + 1];
-                at[i].ptr = &at[i + 1];
-
+                ct[i].ptr = std::make_shared<Node>(ct[i + 1]);
+                at[i].ptr = std::make_shared<Node>(at[i + 1]);
                 D = neutral_f;
                 break;
             case Semantic::OUT_A:
                 if (operators.at(aggregator_string)(C, R)) {
                     f[i].setValue(0);
                     at[i].setValue(0);
-                    ct[i].ptr = &at[i + 1];
+                    ct[i].ptr = std::make_shared<Node>(at[i + 1]);
                 } else if (C == R) {
                     f[i].setValue(0);
-                    ct[i].ptr = &at[i + 1];
-                    at[i].ptr = &at[i + 1];
+                    ct[i].ptr = std::make_shared<Node>(at[i + 1]);
+                    at[i].ptr = std::make_shared<Node>(at[i + 1]);
                 } else if (operators.at(aggregator_string)(R, C)) {
                     f[i].setValue(0);
                     ct[i].setValue(0);
-                    at[i].ptr = &at[i + 1];
-                } else {
+                    at[i].ptr = std::make_shared<Node>(at[i + 1]);
                 }
-
                 C = default_gf;
                 D = neutral_f;
                 R = aggregators.at(aggregator_string)(R, C);
                 break;
-            case Semantic::MAYBE_B: //
+            case Semantic::MAYBE_B:
                 f[i].setValue(0);
-                ct[i].ptr = &ct[i + 1];
-                at[i].ptr = &at[i + 1];
-
+                ct[i].ptr = std::make_shared<Node>(ct[i + 1]);
+                at[i].ptr = std::make_shared<Node>(at[i + 1]);
                 D = calculate_operator(operator_string, D, current_delta_f);
                 break;
             case Semantic::MAYBE_A:
                 f[i].setValue(0);
-                ct[i].ptr = &ct[i + 1];
-                at[i].ptr = &at[i + 1];
-                if (after == 0) {
-                    D = calculate_operator(operator_string, D, current_delta_f_1);
-                } else {
-                    D = calculate_operator(operator_string, D, current_delta_f);
-                }
+                ct[i].ptr = std::make_shared<Node>(ct[i + 1]);
+                at[i].ptr = std::make_shared<Node>(at[i + 1]);
+                D = calculate_operator(operator_string, D, after == 0 ? current_delta_f_1 : current_delta_f);
                 break;
             case Semantic::FOUND:
                 ct[i].setValue(0);
-                f[i].ptr = &ct[i + 1];
-                at[i].ptr = &at[i + 1];
-
+                f[i].ptr = std::make_shared<Node>(ct[i + 1]);
+                at[i].ptr = std::make_shared<Node>(at[i + 1]);
                 if (after == 0) {
                     C = calculate_operator(operator_string, calculate_operator(operator_string, D, current_delta_f),
                                            current_delta_f_1);
                 } else {
                     C = calculate_operator(operator_string, D, current_delta_f);
                 }
-
                 D = neutral_f;
                 break;
-            case Semantic::FOUND_E: //
+            case Semantic::FOUND_E:
                 if (after == 0) {
                     if (operators.at(aggregator_string)(calculate_operator(operator_string,
                                                                            calculate_operator(
                                                                                operator_string, D, current_delta_f),
                                                                            current_delta_f_1), R)) {
-                        f[i].ptr = &ct[i];
+                        f[i].ptr = std::make_shared<Node>(ct[i]);
                         at[i].setValue(0);
-                        ct[i].ptr = &at[i + 1];
+                        ct[i].ptr = std::make_shared<Node>(at[i + 1]);
                     } else if (calculate_operator(operator_string,
                                                   calculate_operator(operator_string, D, current_delta_f),
                                                   current_delta_f_1) == R) {
-                        f[i].ptr = &at[i + 1];
-                        ct[i].ptr = &at[i + 1];
-                        at[i].ptr = &at[i + 1];
+                        f[i].ptr = std::make_shared<Node>(at[i + 1]);
+                        ct[i].ptr = std::make_shared<Node>(at[i + 1]);
+                        at[i].ptr = std::make_shared<Node>(at[i + 1]);
                     } else if (operators.at(aggregator_string)(R, calculate_operator(operator_string,
                                                                    calculate_operator(
                                                                        operator_string, D, current_delta_f),
                                                                    current_delta_f_1))) {
                         f[i].setValue(0);
                         ct[i].setValue(0);
-                        at[i].ptr = &at[i + 1];
+                        at[i].ptr = std::make_shared<Node>(at[i + 1]);
                     } else {
                         continue;
                     }
@@ -238,18 +228,18 @@ Decoration::Result *Decoration::apply_decorator(
                     D = neutral_f;
                 } else if (after == 1) {
                     if (operators.at(aggregator_string)(calculate_operator(operator_string, D, current_delta_f), R)) {
-                        f[i].ptr = &ct[i];
+                        f[i].ptr = std::make_shared<Node>(ct[i]);
                         at[i].setValue(0);
-                        ct[i].ptr = &at[i + 1];
+                        ct[i].ptr = std::make_shared<Node>(at[i + 1]);
                     } else if (calculate_operator(operator_string, D, current_delta_f) == R) {
-                        f[i].ptr = &at[i + 1];
-                        ct[i].ptr = &at[i + 1];
-                        at[i].ptr = &at[i + 1];
+                        f[i].ptr = std::make_shared<Node>(at[i + 1]);
+                        ct[i].ptr = std::make_shared<Node>(at[i + 1]);
+                        at[i].ptr = std::make_shared<Node>(at[i + 1]);
                     } else if (operators.at(aggregator_string)(
                         R, calculate_operator(operator_string, D, current_delta_f))) {
                         f[i].setValue(0);
                         ct[i].setValue(0);
-                        at[i].ptr = &at[i + 1];
+                        at[i].ptr = std::make_shared<Node>(at[i + 1]);
                     } else {
                         continue;
                     }
@@ -258,27 +248,22 @@ Decoration::Result *Decoration::apply_decorator(
 
                     D = neutral_f;
                 }
-
                 break;
             case Semantic::IN:
                 f[i].setValue(0);
-                ct[i].ptr = &ct[i + 1];
-                at[i].ptr = &at[i + 1];
-
-                if (after == 0) {
-                    C = calculate_operator(operator_string, C,
-                                           calculate_operator(operator_string, D, current_delta_f_1));
-                } else {
-                    C = calculate_operator(operator_string, C,
-                                           calculate_operator(operator_string, D, current_delta_f));
-                }
+                ct[i].ptr = std::make_shared<Node>(ct[i + 1]);
+                at[i].ptr = std::make_shared<Node>(at[i + 1]);
+                C = calculate_operator(operator_string, C,
+                                       calculate_operator(operator_string, D,
+                                                          after == 0 ? current_delta_f_1 : current_delta_f));
                 D = neutral_f;
                 break;
-            default: throw invalid_argument("Invalid Semantic::Letter value");
+            default:
+                throw invalid_argument("Invalid Semantic::Letter value");
         }
     }
 
-    const unsigned long n = series.size() - 1;
+    const size_t n = series.size() - 1;
 
     if (operators.at(aggregator_string)(C, R)) {
         ct[n].setValue(1);
@@ -299,9 +284,10 @@ Decoration::Result *Decoration::apply_decorator(
     int result_value = aggregators.at(aggregator_string)(R, C);
 
     auto *result = new Result{
-        vector<Node>(at),
-        vector<Node>(ct),
-        vector<Node>(f), R, C, D, result_value
+        at,
+        ct,
+        f,
+        R, C, D, result_value
     };
 
     return result;

@@ -6,22 +6,23 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <set>
+#include <memory>
 
 using namespace std;
 
 class Node {
 public:
-    Node* ptr;
+    std::shared_ptr<Node> ptr; // Gestion sécurisée des pointeurs
     std::optional<int> value;
 
     Node() : ptr(nullptr), value(std::nullopt) {}
     explicit Node(int value) : ptr(nullptr), value(value) {}
-    Node(const Node& other) {
-        value = other.value;
-        ptr = other.ptr ? new Node(*other.ptr) : nullptr;
-    }
 
-    int getValue() {
+    Node(const Node& other)
+        : ptr(other.ptr ? std::make_shared<Node>(*other.ptr) : nullptr),
+          value(other.value) {}
+
+    int getValue() const {
         if (ptr != nullptr) {
             return ptr->getValue();
         }
@@ -35,8 +36,8 @@ public:
         value = val;
     }
 
-    Node& operator=(int value) {
-        setValue(value);
+    Node& operator=(int val) {
+        setValue(val);
         return *this;
     }
 };
