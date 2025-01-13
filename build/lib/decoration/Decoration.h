@@ -50,9 +50,10 @@ public:
         vector<Node> f;
         int R, C, D, result_value;
 
-        Result(const vector<Node>& at, const vector<Node>& ct, const vector<Node>& f,
-               int R, int C, int D, int result_value)
-            : at(at), ct(ct), f(f), R(R), C(C), D(D), result_value(result_value) {}
+        Result(vector<Node>&& at, vector<Node>&& ct, vector<Node>&& f,
+           int R, int C, int D, int result_value)
+        : at(std::move(at)), ct(std::move(ct)), f(std::move(f)),
+          R(R), C(C), D(D), result_value(result_value) {}
     };
 
     static void print_anomalies(const unordered_map<int, set<string>>& anomaly_map);

@@ -23,14 +23,12 @@ Generator::Generator(const Feature feature,
       aggregator(aggregator),
       pattern(std::move(pattern)),
       series(series),
-      evaluate_performance(evaluate_performance)
-{
+      evaluate_performance(evaluate_performance) {
 }
 
 Generator::Generator(std::string pattern, const std::vector<int> &series, bool evaluate_performance)
     : feature(), aggregator(), pattern(std::move(pattern)), series(series),
-      evaluate_performance(evaluate_performance)
-{
+      evaluate_performance(evaluate_performance) {
 }
 
 long Generator::getCurrentMemoryUsageKB() {
@@ -43,7 +41,7 @@ double Generator::get_default_gf() const {
     switch (aggregator) {
         case Max: return this->features.at(this->feature).min_f;
         case Min: return this->features.at(this->feature).max_f;
-        default:  return -1;
+        default: return -1;
     }
 }
 
@@ -65,28 +63,30 @@ void Generator::update_main(const std::string &function_name) const {
 
     //  - Bloc without performance evaluation
     const string simple_call =
-        "    auto result_" + function_name + " = " + function_name + "(series);\n";
+            "    auto result_" + function_name + " = " + function_name + "(series);\n";
+
+    const string print_line = "    Decoration::print_result(result_" + function_name + ", \"" + function_name +
+                              "\");\n";
 
     //  - Bloc with performance evaluation
     ostringstream perf_call;
     perf_call << "    {\n"
-              << "        using namespace std::chrono;\n"
-              << "        auto mem_before = Generator::getCurrentMemoryUsageKB();\n"
-              << "        auto start = high_resolution_clock::now();\n\n"
-              << "        auto result_" << function_name << " = " << function_name << "(series);\n\n"
-              << "        auto end = high_resolution_clock::now();\n"
-              << "        auto mem_after = Generator::getCurrentMemoryUsageKB();\n"
-              << "        auto elapsed_us = duration_cast<microseconds>(end - start).count();\n\n"
-              << "        std::cout << \"[Performance] result_" << function_name << " : \"\n"
-              << "                  << elapsed_us << \" µs, Memory diff = \"\n"
-              << "                  << (mem_after - mem_before) << \" Ko\" << std::endl;\n"
-              << "        results.insert({ \"" + function_name + "\", result_" + function_name + " });\n"
-              << "    }\n";
+            << "        using namespace std::chrono;\n"
+            << "        auto mem_before = Generator::getCurrentMemoryUsageKB();\n"
+            << "        auto start = high_resolution_clock::now();\n\n"
+            << "        " << function_name << "(series);\n\n"
+            << "        auto end = high_resolution_clock::now();\n"
+            << "        auto mem_after = Generator::getCurrentMemoryUsageKB();\n"
+            << "        auto elapsed_us = duration_cast<microseconds>(end - start).count();\n\n"
+            << "        std::cout << \"[Performance] result_" << function_name << " : \"\n"
+            << "                  << elapsed_us << \" µs, Memory diff = \"\n"
+            << "                  << (mem_after - mem_before) << \" Ko\" << std::endl;\n"
+            << "    }\n";
 
     const string call_insertion = this->evaluate_performance ? perf_call.str() : simple_call;
 
     const string push_result =
-        "    results.insert({ \"" + function_name + "\", result_" + function_name + " });\n\n";
+            "    results.insert({ \"" + function_name + "\", result_" + function_name + " });\n\n";
 
     // Construct series declaration
     stringstream new_series;
@@ -117,8 +117,7 @@ void Generator::update_main(const std::string &function_name) const {
                         include_added = true;
                     }
                     pre_main_content << line << "\n";
-                }
-                else if (line.find("int main()") != string::npos) {
+                } else if (line.find("int main()") != string::npos) {
                     inside_main = true;
                     if (!include_added) {
                         pre_main_content << include_line;
@@ -144,16 +143,16 @@ void Generator::update_main(const std::string &function_name) const {
                 else if (line.find(function_name + "(series)") != string::npos) {
                     cerr << "[Warning] Function " << function_name << " is already in main.\n";
                     post_main_content << line << "\n";
-                }
-                else if (!call_inserted && line.find("auto anomalies = Decoration::detect_anomalies(results);") != string::npos) {
+                } else if (!call_inserted && line.find("// End") !=
+                           string::npos) {
                     post_main_content << call_insertion;
-                    if(!this->evaluate_performance) {
+                    if (!this->evaluate_performance) {
+                        post_main_content << print_line;
                         post_main_content << push_result;
                     }
                     call_inserted = true;
                     post_main_content << line << "\n";
-                }
-                else {
+                } else {
                     post_main_content << line << "\n";
                 }
             }
@@ -166,14 +165,13 @@ void Generator::update_main(const std::string &function_name) const {
         if (!series_found && !this->series.empty()) {
             post_main_content << new_series.str() << "\n";
         }
-    }
-    else {
+    } else {
         // Case main.cpp doesn't exist
         pre_main_content << "#include <iostream>\n"
-                         << "#include <vector>\n"
-                         << "#include \"../lib/decoration/Decoration.h\"\n"
-                         << "#include \"../lib/generator/Generator.h\"\n"
-                         << include_line << "\n";
+                << "#include <vector>\n"
+                << "#include \"../lib/decoration/Decoration.h\"\n"
+                << "#include \"../lib/generator/Generator.h\"\n"
+                << include_line << "\n";
 
         post_main_content << "int main() {\n";
         if (!this->series.empty()) {
@@ -186,14 +184,21 @@ void Generator::update_main(const std::string &function_name) const {
         post_main_content << call_insertion;
 
         if (!this->evaluate_performance) {
+            post_main_content << print_line;
             post_main_content << push_result;
+            post_main_content
+                    << "    // End\n"
+                    << "    auto anomalies = Decoration::detect_anomalies(results);\n"
+                    << "    Decoration::print_anomalies(anomalies);\n\n"
+                    << "    return 0;\n"
+                    << "}\n";
+        } else {
+            post_main_content
+                    << "    // End\n"
+                    << "    return 0;\n"
+                    << "}\n";
         }
 
-        post_main_content
-            << "    auto anomalies = Decoration::detect_anomalies(results);\n"
-            << "    Decoration::print_anomalies(anomalies);\n\n"
-            << "    return 0;\n"
-            << "}\n";
     }
 
     existing_main.close();
@@ -217,19 +222,19 @@ std::string Generator::generate_function_code(
     ofstream file("generated/" + function_name + ".hpp");
     stringstream ss;
     ss << "#pragma once\n\n"
-       << "#include <vector>\n"
-       << "#include \"../lib/decoration/Decoration.h\"\n"
-       << "#include \"../lib/generator/Generator.h\"\n\n"
-       << "inline Decoration::Result* " << function_name << "(std::vector<int> series) {\n"
-       << "    int default_gf = " << convert_to_code(default_gf) << ";\n"
-       << "    int neutral_f = " << convert_to_code(neutral_f) << ";\n"
-       << "    int delta_f = " << this->features.at(feature).delta << ";\n\n"
-       << "    std::string operator_string = \"" << operator_string << "\";\n"
-       << "    std::string aggregator_name = \"" << aggregator_name << "\";\n"
-       << "    std::string pattern = \"" << pattern << "\";\n\n"
-       << "    return Decoration::apply_decorator(series, default_gf, neutral_f, delta_f, "
-          "operator_string, aggregator_name, pattern);\n"
-       << "}\n";
+            << "#include <vector>\n"
+            << "#include \"../lib/decoration/Decoration.h\"\n"
+            << "#include \"../lib/generator/Generator.h\"\n\n"
+            << "inline Decoration::Result* " << function_name << "(std::vector<int> series) {\n"
+            << "    int default_gf = " << convert_to_code(default_gf) << ";\n"
+            << "    int neutral_f = " << convert_to_code(neutral_f) << ";\n"
+            << "    int delta_f = " << this->features.at(feature).delta << ";\n\n"
+            << "    std::string operator_string = \"" << operator_string << "\";\n"
+            << "    std::string aggregator_name = \"" << aggregator_name << "\";\n"
+            << "    std::string pattern = \"" << pattern << "\";\n\n"
+            << "    return Decoration::apply_decorator(series, default_gf, neutral_f, delta_f, "
+            "operator_string, aggregator_name, pattern);\n"
+            << "}\n";
 
     file << ss.str();
     file.close();
@@ -268,8 +273,8 @@ void Generator::generate_anomaly_detection() {
     const std::vector<Aggregator> aggregators = {Min, Max};
     const std::vector<Feature> features = {One, Width, Surface, FMax, FMin, Range};
 
-    for (auto agg : aggregators) {
-        for (auto feat : features) {
+    for (auto agg: aggregators) {
+        for (auto feat: features) {
             this->aggregator = agg;
             this->feature = feat;
             this->generate();

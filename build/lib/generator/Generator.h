@@ -1,11 +1,12 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
+
 #include <iostream>
 #include <map>
 #include <string>
 #include <stdexcept>
-
-using namespace std;
+#include <vector>
+#include <limits>
 
 enum Aggregator {
     Max,
@@ -21,63 +22,55 @@ enum Feature {
     Range
 };
 
-inline Feature to_feature(const string &feature) {
-    if (feature == "one") return One;
-    if (feature == "width") return Width;
-    if (feature == "surface") return Surface;
-    if (feature == "max") return FMax;
-    if (feature == "min") return FMin;
-    if (feature == "range") return Range;
-    throw invalid_argument(
-        "Invalid feature value. Must be one of:\n - one\n - width\n - surface\n - max\n - min\n - range");
+inline Feature to_feature(const std::string &feature) {
+    if (feature == "one")    return One;
+    if (feature == "width")  return Width;
+    if (feature == "surface")return Surface;
+    if (feature == "max")    return FMax;
+    if (feature == "min")    return FMin;
+    if (feature == "range")  return Range;
+    throw std::invalid_argument(
+        "Invalid feature value. Must be one of:\n - one\n - width\n - surface\n - max\n - min\n - range"
+    );
 }
 
-inline Aggregator to_aggregator(const string &aggregator) {
+inline Aggregator to_aggregator(const std::string &aggregator) {
     if (aggregator == "max") return Max;
     if (aggregator == "min") return Min;
-    throw invalid_argument("Invalid aggregator value. Must be one of:\n - max\n - min");
+    throw std::invalid_argument("Invalid aggregator value. Must be one of:\n - max\n - min");
 }
 
-inline string to_string(const Feature feature) {
+inline std::string to_string(const Feature feature) {
     switch (feature) {
-        case One: return "one";
-        case Width: return "width";
-        case Surface: return "surface";
-        case FMax: return "max";
-        case FMin: return "min";
-        case Range: return "range";
-        default: throw invalid_argument("Invalid feature value");
+        case One:    return "one";
+        case Width:  return "width";
+        case Surface:return "surface";
+        case FMax:   return "max";
+        case FMin:   return "min";
+        case Range:  return "range";
+        default:     throw std::invalid_argument("Invalid feature value");
     }
 }
 
-inline string to_string(const Aggregator aggregator) {
+inline std::string to_string(const Aggregator aggregator) {
     switch (aggregator) {
         case Max: return "max";
         case Min: return "min";
-        default: throw invalid_argument("Invalid aggregator value");
+        default:  throw std::invalid_argument("Invalid aggregator value");
     }
 }
 
 struct FeatureValues {
-    double neutral;
-    double min_f;
-    double max_f;
-    string phi;
-    double delta;
+    double neutral;      ///< Neutral value (p. ex. 0)
+    double min_f;        ///< Min limit of the feature
+    double max_f;        ///< Max limit of the feature
+    std::string phi;     ///< Operator (e.g. "+" or  "max" / "min")
+    double delta;        ///< Associated delta (p. ex. -1 ou 1)
 };
 
 class Generator {
-    [[nodiscard]] double get_default_gf() const;
-
-    static string convert_to_code(int value);
-
-    void update_main(const string &function_name) const;
-
-    string generate_function_code(const string &aggregator_name, const string &feature_name,
-                                              const string &pattern, const string &operator_string, double default_gf, double
-                                              neutral_f);
-
-    const map<Feature, FeatureValues> features = {
+private:
+    const std::map<Feature, FeatureValues> features = {
         {
             One,
             {1, 1, 1, "max", 0}
@@ -88,36 +81,65 @@ class Generator {
         },
         {
             Surface,
-            {0, numeric_limits<int>::min(), numeric_limits<int>::max(), "+",-1}
+            {0, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), "+", -1}
         },
         {
             FMax,
             {
-                numeric_limits<int>::min(), numeric_limits<int>::min(),
-                numeric_limits<int>::max(), "max", -1
+                static_cast<double>(std::numeric_limits<int>::min()),
+                static_cast<double>(std::numeric_limits<int>::min()),
+                static_cast<double>(std::numeric_limits<int>::max()),
+                "max", -1
             }
         },
         {
             FMin,
-            {numeric_limits<int>::max(), numeric_limits<int>::min(), numeric_limits<int>::max(), "min", -1}
+            {
+                static_cast<double>(std::numeric_limits<int>::max()),
+                static_cast<double>(std::numeric_limits<int>::min()),
+                static_cast<double>(std::numeric_limits<int>::max()),
+                "min", -1
+            }
         },
         {
-            Range, {0, 0, numeric_limits<int>::max(), "", -1}
+            Range,
+            {0, 0, static_cast<double>(std::numeric_limits<int>::max()), "", -1}
         }
     };
 
-    Feature feature;
-    Aggregator aggregator;
-    string pattern;
-    vector<int> series;
+    Feature feature;             ///< Feature chosen
+    Aggregator aggregator;       ///< Aggregator chosen
+    std::string pattern;         ///< Pattern chosen
+    std::vector<int> series;     ///< Integers Series
+    bool evaluate_performance;   ///< Boolean to indicate if we want to evaluate the performance
+
+    [[nodiscard]] double get_default_gf() const;
+
+    static std::string convert_to_code(int value);
+
+    void update_main(const std::string &function_name) const;
+
+    std::string generate_function_code(const std::string &aggregator_name,
+                                       const std::string &feature_name,
+                                       const std::string &pattern,
+                                       const std::string &operator_string,
+                                       double default_gf,
+                                       double neutral_f);
 
 public:
-    Generator(Feature feature, Aggregator aggregator, string pattern, const vector<int>& series);
-    explicit Generator(string pattern);
+    Generator(Feature feature,
+              Aggregator aggregator,
+              std::string pattern,
+              const std::vector<int>& series,
+              bool evaluate_performance = false);
+
+    explicit Generator(std::string pattern, const std::vector<int>& series, bool evaluate_performance = false);
 
     void generate();
+
     void generate_anomaly_detection();
+
+    static long getCurrentMemoryUsageKB();
 };
 
-
-#endif
+#endif // GENERATOR_H

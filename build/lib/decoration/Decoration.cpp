@@ -299,9 +299,10 @@ Decoration::Result *Decoration::apply_decorator(
     int result_value = aggregators.at(aggregator_string)(R, C);
 
     auto *result = new Result{
-        vector<Node>(at),
-        vector<Node>(ct),
-        vector<Node>(f), R, C, D, result_value
+        std::move(at),
+        std::move(ct),
+        std::move(f),
+        R, C, D, result_value
     };
 
     return result;
