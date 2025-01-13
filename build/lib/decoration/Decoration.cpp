@@ -113,9 +113,9 @@ Decoration::Result *Decoration::apply_decorator(
 ) {
     if (default_gf == -1)
         default_gf = static_cast<int>(series.size());
+    int R = default_gf;
     int C = default_gf;
     int D = neutral_f;
-    int R = default_gf;
 
     const auto json = get_json(pattern);
 
@@ -167,9 +167,9 @@ Decoration::Result *Decoration::apply_decorator(
                 } else {
                 }
 
+                R = aggregators.at(aggregator_string)(R, C);
                 C = default_gf;
                 D = neutral_f;
-                R = aggregators.at(aggregator_string)(R, C);
                 break;
             case Semantic::MAYBE_B: //
                 f[i].setValue(0);

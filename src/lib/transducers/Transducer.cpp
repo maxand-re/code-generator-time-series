@@ -1,30 +1,34 @@
 #include "Transducer.h"
-
 #include <fstream>
+#include <string>
+#include <vector>
+#include <nlohmann/json.hpp>
 
 using namespace std;
 
 string Transducer::compare(const int a, const int b) {
-    if (a < b) return "<";
-    if (a == b) return "=";
-    return ">";
+    return (a < b) ? "<" : (a == b ? "=" : ">");
 }
 
-vector<Semantic::Letter> Transducer::process(const vector<int> &series, nlohmann::json patternJson) {
+vector<Semantic::Letter> Transducer::process(const vector<int>& series, const nlohmann::json& patternJson) {
     vector<Semantic::Letter> result;
-    auto state = patternJson.at("entry").get<string>();
+    size_t seriesSize = series.size();
+    if (seriesSize < 2) return result;
 
-    for (unsigned int i = 1; i < series.size(); ++i) {
-        auto comparison = compare(series[i - 1], series[i]);
-        auto conditionIter = patternJson.at("states").at(state).begin();
-        auto conditionEnd = patternJson.at("states").at(state).end();
+    result.reserve(seriesSize - 1);
 
-        for (; conditionIter != conditionEnd; ++conditionIter) {
-            if (conditionIter.value().at("condition").get<string>() == comparison) {
+    // Cache frequently used JSON components
+    const auto& states = patternJson.at("states");
+    string state = patternJson.at("entry").get<string>();
 
-                state = conditionIter.value().at("next").get<string>();
-                auto stringSemanticLetter = conditionIter.value().at("semantic").get<string>();
-                result.push_back(Semantic::string_to_letter(stringSemanticLetter));
+    for (size_t i = 1; i < seriesSize; ++i) {
+        string comparison = compare(series[i - 1], series[i]);
+        const auto& stateConditions = states.at(state);
+
+        for (const auto& condition : stateConditions) {
+            if (condition.at("condition").get<string>() == comparison) {
+                state = condition.at("next").get<string>();
+                result.emplace_back(Semantic::string_to_letter(condition.at("semantic").get<string>()));
                 break;
             }
         }

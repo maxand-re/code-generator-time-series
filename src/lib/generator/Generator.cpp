@@ -80,7 +80,7 @@ void Generator::update_main(const std::string &function_name) const {
             << "        auto elapsed_us = duration_cast<microseconds>(end - start).count();\n\n"
             << "        std::cout << \"[Performance] result_" << function_name << " : \"\n"
             << "                  << elapsed_us << \" µs, Memory diff = \"\n"
-            << "                  << (mem_after - mem_before) << \" Ko\" << std::endl;\n"
+            << "                  << (mem_after - mem_before) << \" bytes\" << std::endl;\n"
             << "    }\n";
 
     const string call_insertion = this->evaluate_performance ? perf_call.str() : simple_call;
