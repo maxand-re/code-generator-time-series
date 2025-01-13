@@ -6,7 +6,7 @@
 #include "../Semantic.h"
 
 class Transducer {
-    static std::string compare(int a, int b);
+    static char compare(int a, int b);
 
 public:
     static std::vector<Semantic::Letter> process(const std::vector<int>& series, const nlohmann::json& patternJson);

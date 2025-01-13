@@ -54,7 +54,7 @@ void Decoration::print_result(const Result *result, const string &function_name)
     cout << "Function: " << function_name << endl;
     cout << "at = [";
     for (auto at_i: result->at) {
-        cout << at_i.getValue() << ", ";
+        cout << at_i.getValue() << ", " << endl;
     }
     cout << "]" << endl;
     cout << "ct = [";
